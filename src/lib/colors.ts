@@ -1,0 +1,26 @@
+export const colors = {
+  /** Matches tailwind + globals.css :root — single source of truth */
+  gold: "#D4AF37",
+  goldLight: "#E8C872",
+  roseGold: "#C9A08A",
+  roseGoldLight: "#E8C4B8",
+  white: "#FFFBF7",
+  cream: "#FAF6F1",
+  brown: "#3D2B1F",
+  brownMid: "#5C4033",
+  goldDeep: "#C9A04A",
+  goldMuted: "#B8943F",
+  table: "#E1AE7D",
+  tableTop: "#F2C99A",
+  tableLeg: "#9A6B42",
+  /** Jewelry counter — #E1AE7D family (5 shades) */
+  tableCream: "#F2C99A",
+  tablePeach: "#E1AE7D",
+  tableWarm: "#D29A68",
+  tableGold: "#C9A55A",
+  tableBase: "#9A6B42",
+  tableShade: "#C08555",
+  tableSide: "#D29A68",
+  tableRose: "#E8BE90",
+  tableCopper: "#C08555",
+} as const;

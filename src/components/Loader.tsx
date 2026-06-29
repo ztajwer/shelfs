@@ -1,0 +1,142 @@
+"use client";
+
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
+import LoaderFallingGlitter from "./LoaderFallingGlitter";
+import {
+  bootImagePipeline,
+  scheduleModelPreloads,
+} from "@/lib/modelPreload";
+import { getDeviceProfile } from "@/lib/deviceProfile";
+
+interface LoaderProps {
+  onComplete: () => void;
+}
+
+const LOADER_DURATION_MS_DEFAULT = 2800;
+const LOADER_DURATION_MS_LOW = 1400;
+const FADE_DURATION_MS = 300;
+
+export default function Loader({ onComplete }: LoaderProps) {
+  const [visible, setVisible] = useState(true);
+  const [fadeOut, setFadeOut] = useState(false);
+  const [displayProgress, setDisplayProgress] = useState(0);
+  const finishedRef = useRef(false);
+  const loaderDurationMs = useRef(
+    typeof window !== "undefined" && getDeviceProfile().lowEnd
+      ? LOADER_DURATION_MS_LOW
+      : LOADER_DURATION_MS_DEFAULT,
+  );
+
+  useEffect(() => {
+    bootImagePipeline();
+  }, []);
+
+  const finish = useCallback(() => {
+    if (finishedRef.current) return;
+    finishedRef.current = true;
+    setDisplayProgress(100);
+    scheduleModelPreloads(400);
+    setFadeOut(true);
+    setTimeout(() => {
+      setVisible(false);
+      onComplete();
+    }, FADE_DURATION_MS);
+  }, [onComplete]);
+
+  useEffect(() => {
+    const startedAt = performance.now();
+    const duration = loaderDurationMs.current;
+    const progressWindow = Math.max(400, duration - FADE_DURATION_MS);
+    let raf = 0;
+
+    const tick = (now: number) => {
+      const elapsed = now - startedAt;
+      const t = Math.min(1, elapsed / progressWindow);
+      const eased = t * t * (3 - 2 * t);
+      setDisplayProgress(Math.max(1, eased * 100));
+
+      if (elapsed >= duration) {
+        finish();
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [finish]);
+
+  if (!visible) return null;
+
+  const shownProgress = Math.min(100, Math.round(displayProgress));
+
+  return (
+    <div
+      className={`loader-screen fixed inset-0 z-50 transition-opacity duration-[350ms] ease-out ${
+        fadeOut ? "pointer-events-none opacity-0" : "opacity-100"
+      }`}
+    >
+      <Image
+        src="/bg.png"
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="loader-bg"
+        aria-hidden
+      />
+
+      <LoaderFallingGlitter progress={displayProgress} />
+
+      <div className="loader-frame pointer-events-none absolute border border-maj-gold/15" />
+
+      <div className="loader-shell relative z-10 flex flex-col justify-center">
+        <div className="loader-stack animate-fade-up">
+          <div className="loader-logo-wrap">
+            <div className="relative">
+              <div className="absolute -inset-10 rounded-full bg-maj-gold/14 blur-3xl sm:-inset-12" />
+              <div className="loader-logo-size relative">
+                <Image
+                  src="/logo_outline.png"
+                  alt=""
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 80vw, (max-width: 768px) 48vw, 360px"
+                  className="loader-logo-outline object-contain object-center"
+                  aria-hidden
+                />
+                <Image
+                  src="/wh_logo-removebg-preview.png"
+                  alt="MAJ Boutique"
+                  fill
+                  priority
+                  sizes="(max-width: 640px) 72vw, (max-width: 768px) 48vw, 320px"
+                  className="loader-logo-front relative z-10 object-contain object-center drop-shadow-[0_8px_28px_rgba(212,175,55,0.28)]"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="loader-progress">
+            <div className="mb-2 flex items-center justify-between sm:mb-3">
+              <span className="font-sans text-[9px] uppercase tracking-[0.28em] text-maj-brown/55 sm:text-[10px] sm:tracking-[0.36em]">
+                Preparing
+              </span>
+              <span className="font-sans text-[9px] tabular-nums tracking-wider text-maj-brown-mid sm:text-[10px]">
+                {shownProgress}%
+              </span>
+            </div>
+
+            <div className="relative h-1 w-full overflow-visible rounded-full bg-maj-brown/12">
+              <div
+                className="loader-bar-fill relative h-full rounded-full transition-all duration-300 ease-out"
+                style={{ width: `${shownProgress}%` }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
