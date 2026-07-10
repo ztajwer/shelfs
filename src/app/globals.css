@@ -350,7 +350,8 @@ html.detail-page-scroll body {
   will-change: transform;
 }
 
-.boutique-shelf-products {
+.boutique-shelf-products,
+.boutique-hero__shelves {
   position: absolute;
   inset: 0;
   z-index: 2;
@@ -557,7 +558,7 @@ html.detail-page-scroll body {
   flex-direction: row;
   justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 0;
   z-index: 6;
   pointer-events: auto;
   overflow: visible;
@@ -578,8 +579,16 @@ html.detail-page-scroll body {
 
 .line-shelf__product-interactive:hover,
 .line-shelf__product-interactive--selected {
-  transform: scale(1.6);
+  transform: scale(1.02);
   z-index: 10;
+}
+
+.line-shelf__product-interactive--middle-row {
+  margin-top: -5px;
+}
+
+.line-shelf__product-interactive--lower-row {
+  margin-top: -7px;
 }
 
 .line-shelf__product-interactive:focus-visible {
@@ -1360,3 +1369,158 @@ canvas {
   white-space: nowrap;
   border-width: 0;
 }
+
+/* Table — restored to original starting position and size, lifted 10px, enlarged 20px */
+.table-3d-wrapper,
+.table-products-overlay {
+  position: absolute !important;
+  bottom: 205px !important;
+  top: auto !important;
+  left: 43% !important;
+  transform: translateX(-50%) !important;
+  width: 85% !important;
+  max-width: 415px !important;
+  height: 295px !important;
+}
+
+@media (min-width: 768px) {
+  .table-3d-wrapper,
+  .table-products-overlay {
+    max-width: 715px !important;
+    height: 465px !important;
+  }
+}
+
+/* Specialized hover scaling for table showcase products */
+.table-products-overlay .line-shelf__product-mount {
+  gap: 0;
+}
+
+.table-products-overlay .line-shelf__product-interactive {
+  width: calc(var(--product-size, 56px) * 0.86);
+  height: calc(var(--product-size, 56px) * 0.86);
+  margin: 0;
+}
+
+.table-products-overlay .line-shelf__product-interactive:hover,
+.table-products-overlay .line-shelf__product-interactive--selected {
+  transform: scale(1.2) !important;
+}
+
+/* 3D Luxury Product Carousel Styles */
+.carousel-container {
+  width: 100%;
+  max-width: 680px;
+  margin: 0 auto;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-stage {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+.carousel-item {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.5);
+  opacity: 0;
+  z-index: 10;
+  transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.6s ease, filter 0.6s ease;
+  transform-origin: center bottom;
+}
+
+/* Active central item */
+.carousel-item-active {
+  transform: translate(-50%, -50%) scale(1.2) !important;
+  opacity: 1 !important;
+  z-index: 35 !important;
+  filter: none !important;
+}
+
+/* Active item hover effect - scales up and moves upward */
+.carousel-item-active:hover {
+  transform: translate(-50%, -50%) scale(1.45) translateY(-25px) !important;
+  z-index: 50 !important;
+}
+
+/* Left item style */
+.carousel-item-left {
+  transform: translate(calc(-50% - 95px), -50%) scale(0.8) !important;
+  opacity: 0.65 !important;
+  z-index: 20 !important;
+  filter: blur(1.2px) brightness(0.8) !important;
+}
+
+/* Right item style */
+.carousel-item-right {
+  transform: translate(calc(-50% + 95px), -50%) scale(0.8) !important;
+  opacity: 0.65 !important;
+  z-index: 20 !important;
+  filter: blur(1.2px) brightness(0.8) !important;
+}
+
+@media (min-width: 768px) {
+  .carousel-item-left {
+    transform: translate(calc(-50% - 195px), -50%) scale(0.85) !important;
+  }
+  .carousel-item-right {
+    transform: translate(calc(-50% + 195px), -50%) scale(0.85) !important;
+  }
+}
+
+/* Responsive sizing and spacing variables for tabletop products */
+:root {
+  --product-carousel-size: 95px;
+  --product-carousel-gap: 0px;
+  --product-hover-scale: 1.105; /* 105px / 95px (exactly 10px bigger) */
+}
+@media (min-width: 768px) {
+  :root {
+    --product-carousel-size: 145px;
+    --product-carousel-gap: 0px;
+    --product-hover-scale: 1.069; /* 155px / 145px (exactly 10px bigger) */
+  }
+}
+
+/* Straight layout tabletop product items styling */
+.straight-product-item {
+  width: var(--product-size, var(--product-carousel-size));
+  height: var(--product-size, var(--product-carousel-size));
+  margin: 0;
+  position: relative;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.25s cubic-bezier(0.215, 0.61, 0.355, 1), z-index 0.25s ease !important;
+}
+
+.straight-product-item:hover {
+  transform: scale(var(--product-hover-scale)) translateY(-5px) !important;
+  z-index: 50 !important;
+}
+
+/* Glassmorphic circle background for tabletop products */
+.product-circle-bg {
+  width: 65%;
+  height: 65%;
+  position: absolute;
+  top: 17.5%;
+  left: 17.5%;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  transition: transform 0.25s cubic-bezier(0.215, 0.61, 0.355, 1), background-color 0.25s ease, border-color 0.25s ease !important;
+}
+
+.straight-product-item:hover .product-circle-bg {
+  background-color: rgba(255, 255, 255, 0.20) !important;
+  border-color: rgba(255, 255, 255, 0.38) !important;
+}
+
+

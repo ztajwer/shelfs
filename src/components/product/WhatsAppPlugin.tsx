@@ -36,7 +36,7 @@ export default function WhatsAppPlugin() {
 
   return (
     <div
-      className="pointer-events-none fixed bottom-5 right-4 z-[80] flex flex-col items-end gap-2 sm:bottom-7 sm:right-6"
+      className="pointer-events-none fixed bottom-[115px] right-4 z-[80] flex flex-col items-end gap-2 sm:bottom-[130px] sm:right-6"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? "translateY(0)" : "translateY(14px)",

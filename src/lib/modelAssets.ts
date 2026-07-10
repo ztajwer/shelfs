@@ -15,8 +15,17 @@ function isLocalDevHost(): boolean {
   }
 
   const host = window.location.hostname;
-  return host === "localhost" || host === "127.0.0.1";
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "[::1]" ||
+    host.endsWith(".local") ||
+    /^192\.168\./.test(host) ||
+    /^10\./.test(host) ||
+    /^172\.(1[6-9]|2[0-9]|3[0-1])\./.test(host)
+  );
 }
+
 
 function resolveGlbBase(): string {
   const configured = process.env.NEXT_PUBLIC_GLB_BASE_URL?.trim();

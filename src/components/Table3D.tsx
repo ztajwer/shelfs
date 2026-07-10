@@ -16,7 +16,18 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
   // Clone the scene so we can modify it safely without caching side-effects
   const clonedScene = useMemo(() => {
     if (!scene) return null;
-    return scene.clone(true);
+    const cloned = scene.clone(true);
+    // Strip any embedded lights to prevent light count mismatch crashes in WebGLRenderer
+    const lightsToRemove: THREE.Object3D[] = [];
+    cloned.traverse((child) => {
+      if ((child as any).isLight) {
+        lightsToRemove.push(child);
+      }
+    });
+    lightsToRemove.forEach((light) => {
+      light.parent?.remove(light);
+    });
+    return cloned;
   }, [scene]);
 
   useEffect(() => {
@@ -27,8 +38,18 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     clonedScene.position.set(0, 0, 0);
     clonedScene.rotation.set(0, 0, 0);
 
-    // Compute bounding box to center and normalize scale
-    const box = new THREE.Box3().setFromObject(clonedScene);
+    // Compute bounding box based only on meshes to ignore helper locators, cameras, grids, etc.
+    const box = new THREE.Box3();
+    let hasMesh = false;
+    clonedScene.traverse((child) => {
+      if ((child as THREE.Mesh).isMesh) {
+        box.expandByObject(child);
+        hasMesh = true;
+      }
+    });
+    if (!hasMesh) {
+      box.setFromObject(clonedScene);
+    }
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
@@ -37,17 +58,17 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     clonedScene.position.y = -box.min.y;
     clonedScene.position.z = -center.z;
 
-    // Beautiful, natural scale - increased size as requested
+    // Beautiful, natural scale - adjusted slightly down to prevent bottom cropping
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      const targetScale = 1.5 / maxDim; // Made a little bigger
+      const targetScale = 1.52 / maxDim; 
       clonedScene.scale.setScalar(targetScale);
     }
 
     // Dynamic texture downscaling and model optimization for mobile GPU performance
     optimizeModelForGpu(clonedScene, textureMax);
 
-    // Apply perfectly light texture and color while preserving geometry
+    // Apply materials while preserving the model's original colors and textures
     clonedScene.traverse((child) => {
       const mesh = child as THREE.Mesh;
       if (mesh.isMesh) {
@@ -58,17 +79,21 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
         }
         if (mesh.material) {
           const mat = mesh.material as THREE.MeshStandardMaterial;
-          // Set color to a very, very light tint while keeping the texture map intact
-          mat.color.set("#FFFFFF");
-          mat.roughness = 0.1; // Perfect smooth texture
-          mat.metalness = 0.2; // Slight premium sheen
-          mat.envMapIntensity = 1.5; // Make reflections pop for perfect texture
+          
+          // Enable transparency to support any alpha channel transparency (like the glass showcase top)
+          mat.transparent = true;
+          mat.opacity = 1.0;
+          mat.depthWrite = true;
+          
+          // Set premium PBR lighting and reflection intensities for a smooth, satin lacquer sheen
+          mat.roughness = 0.22;
+          mat.metalness = 0.3;
+          mat.envMapIntensity = 1.8; // gorgeous environmental reflections
         }
       }
     });
   }, [clonedScene, textureMax, isMobile]);
 
-  // Rotation and movement removed as requested
   if (!clonedScene) return null;
 
   return (
@@ -87,7 +112,6 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
   
   // Keep textures fully HD (2048) on mobile to make it look optimized and beautiful
   const textureMax = profile.lowEnd ? 1024 : 2048;
-  const shadowMapSize = profile.mobile ? 256 : 1024;
 
   return (
     <div
@@ -108,28 +132,17 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           powerPreference: "high-performance",
           precision: "highp", // Max precision for perfect HD textures
         }}
-        camera={{ position: [0, 2.0, 5.0], fov: 15 }}
+        camera={{ position: [0, 1.8, 5.0], fov: 17.5 }}
         onCreated={({ gl, camera }) => {
           gl.setClearColor(0x000000, 0);
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.2; // Brighter luxury exposure
-          camera.lookAt(0, 0.1, 0);
+          camera.lookAt(0, 0.24, 0); // Point slightly lower to prevent cropping at the top/bottom
         }}
       >
-        <ambientLight intensity={0.7} color="#FFF5EB" />
-        <Environment preset="city" /> {/* Fixes shattered metal reflections by providing realistic HDR reflections */}
-
-        {/* Dynamic Key Lighting to bring out metallic edges and curves */}
-        <directionalLight
-          position={[1.5, 4, 2]}
-          intensity={1.0}
-          color="#FFF8F2"
-          castShadow={!profile.mobile}
-          shadow-mapSize={[shadowMapSize, shadowMapSize]}
-          shadow-bias={-0.0001}
-        />
-        <directionalLight position={[-2, 2.5, 1.5]} intensity={0.6} color="#EDD7C2" />
-        <pointLight position={[0, 1.2, 1.2]} intensity={0.8} color="#DBBC9E" distance={5} />
+        <Environment preset="lobby" environmentIntensity={1.35} />
+        <ambientLight intensity={0.7} color="#FFFBF8" />
+        <pointLight position={[0, 1.2, 1.2]} intensity={0.8} color="#FAF5F2" distance={5} />
 
         <Suspense
           fallback={
@@ -141,7 +154,6 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           }
         >
           <TableModel textureMax={textureMax} isMobile={profile.mobile} />
-          <Environment preset="apartment" environmentIntensity={0.35} />
         </Suspense>
 
         {/* Render smooth contract shadow plane */}
@@ -154,7 +166,6 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           color="#2C1F15"
           frames={1} // Only render contact shadows once to avoid rendering loop lag
         />
-
       </Canvas>
     </div>
   );
@@ -164,4 +175,3 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
 if (typeof window !== "undefined") {
   useGLTF.preload(getModelUrl("table-3d.glb"), false, false, extendGltfLoader);
 }
-

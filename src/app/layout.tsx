@@ -86,6 +86,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { CustomizationProvider } from "@/context/CustomizationContext";
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -100,7 +102,7 @@ export default function RootLayout({
         {SHOP_SHELVES_ENABLED && (
           <link
             rel="preload"
-            href="/shelf.glb"
+            href="/shelfs.glb"
             as="fetch"
             crossOrigin="anonymous"
           />
@@ -116,9 +118,11 @@ export default function RootLayout({
         <link rel="preload" href="/main_mob_bg.png" as="image" />
       </head>
       <body className="font-sans antialiased" suppressHydrationWarning>
-        <EarlyModelPreload />
-        <SeoJsonLd />
-        {children}
+        <CustomizationProvider>
+          <EarlyModelPreload />
+          <SeoJsonLd />
+          {children}
+        </CustomizationProvider>
       </body>
     </html>
   );

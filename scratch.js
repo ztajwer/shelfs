@@ -1,5 +1,17 @@
 const THREE = require('three');
-const fs = require('fs');
 
-// We will write the logic here to see how we split it in Table3D.tsx
-console.log("We will use geometry.addGroup in Table3D.tsx!");
+function asPhysicalMaterial(mat) {
+  if (mat instanceof THREE.MeshPhysicalMaterial) return mat;
+  const physical = new THREE.MeshPhysicalMaterial();
+  
+  try {
+    THREE.MeshStandardMaterial.prototype.copy.call(physical, mat);
+  } catch (e) {
+    console.log("Caught error in copy.call:", e.message);
+  }
+  return physical;
+}
+
+const standard = new THREE.MeshStandardMaterial();
+const physical = asPhysicalMaterial(standard);
+console.log("Converted successfully! color:", physical.color.getHexString());

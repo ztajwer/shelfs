@@ -65,6 +65,7 @@ export function useExperienceScroll(ready: boolean) {
     setFocusProgress(0);
   }, [ready]);
 
+
   useEffect(() => {
     if (!ready || prefersReducedMotion()) return;
 
@@ -81,6 +82,9 @@ export function useExperienceScroll(ready: boolean) {
         enteredAtScrollRef.current = openDist;
         shopLatchedRef.current = true;
         setEntered(true);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("maj_boutique_entered", "true");
+        }
       }
 
       // Once in the boutique, never scroll back into the door zone (prevents door UI / progress rewind).

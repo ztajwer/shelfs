@@ -21,6 +21,11 @@ import { useExperienceScroll } from "@/hooks/useExperienceScroll";
 
 function ExperienceInner() {
   const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    sessionStorage.removeItem("maj_boutique_entered");
+  }, []);
+
   const [scrollModalOpen, setScrollModalOpen] = useState(false);
   const [showCursorGlitter, setShowCursorGlitter] = useState(false);
   const {
@@ -209,7 +214,7 @@ function ExperienceInner() {
       {ready && (
         <div
           ref={scrollRef}
-          className={`experience-scroll-layer shop-scroll-layer fixed inset-0 z-[45] overflow-x-hidden overflow-y-auto overscroll-none${entered ? " shop-scroll-layer--passthrough" : ""}`}
+          className={`experience-scroll-layer shop-scroll-layer fixed inset-0 z-[45] overflow-x-hidden overflow-y-auto overscroll-none ${entered ? "shop-scroll-layer--passthrough" : ""}`}
           style={{ WebkitOverflowScrolling: "touch" }}
           aria-hidden
         >

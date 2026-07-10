@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { ContactShadows, Environment, PerspectiveCamera, SoftShadows, useGLTF } from "@react-three/drei";
+import { ContactShadows, Environment, PerspectiveCamera, useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 import {
   BOUTIQUE_SHELF_CAMERA,
@@ -28,13 +28,37 @@ function fitShelfToSize(root: THREE.Object3D, targetSpan: number) {
   root.rotation.set(0, 0, 0);
   root.updateMatrixWorld(true);
 
-  const box = new THREE.Box3().setFromObject(root);
+  // Compute bounding box based only on meshes to ignore helper locators, cameras, grids, etc.
+  const box = new THREE.Box3();
+  let hasMesh = false;
+  root.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      box.expandByObject(child);
+      hasMesh = true;
+    }
+  });
+  if (!hasMesh) {
+    box.setFromObject(root);
+  }
+
   const size = box.getSize(new THREE.Vector3());
   const visualSpan = Math.max(size.x, size.y, size.z);
   if (visualSpan > 0) root.scale.setScalar(targetSpan / visualSpan);
 
   root.updateMatrixWorld(true);
-  const fitted = new THREE.Box3().setFromObject(root);
+
+  const fitted = new THREE.Box3();
+  let hasMeshFitted = false;
+  root.traverse((child) => {
+    if ((child as THREE.Mesh).isMesh) {
+      fitted.expandByObject(child);
+      hasMeshFitted = true;
+    }
+  });
+  if (!hasMeshFitted) {
+    fitted.setFromObject(root);
+  }
+
   const center = fitted.getCenter(new THREE.Vector3());
   root.position.set(-center.x, -fitted.min.y, -center.z);
 }
@@ -120,18 +144,13 @@ function ShelfInteriorLights({ root }: { root: THREE.Object3D }) {
             distance={layout.distance * 0.75}
             decay={2.4}
           />
-          <spotLight
+          <pointLight
             position={[level.glow.x, level.glow.y + 0.025, level.glow.z]}
-            angle={0.48}
-            penumbra={0.92}
             intensity={0.58}
             color={SHELF_LIGHT_COLORS.accent}
             distance={layout.distance * 1.15}
             decay={2}
-            castShadow={false}
-          >
-            <object3D position={level.spotTarget} attach="target" />
-          </spotLight>
+          />
           <ShelfLedAccent position={[level.glow.x, level.glow.y, level.glow.z + 0.008]} />
           <ShelfLedAccent
             position={[level.glow.x - layout.stripWidth * 0.35, level.glow.y, level.glow.z + 0.006]}
@@ -164,6 +183,18 @@ function PhysicalShelfModel({ layout }: { layout: ShelfModelLayoutItem }) {
 
   const cloned = useMemo(() => {
     const obj = scene.clone(true);
+    
+    // Strip any embedded lights to prevent light count mismatch crashes in WebGLRenderer
+    const lightsToRemove: THREE.Object3D[] = [];
+    obj.traverse((child) => {
+      if ((child as any).isLight) {
+        lightsToRemove.push(child);
+      }
+    });
+    lightsToRemove.forEach((light) => {
+      light.parent?.remove(light);
+    });
+
     fitShelfToSize(obj, layout.displaySize);
     applyLuxuryShelfMaterials(obj);
     return obj;
@@ -219,7 +250,6 @@ function ShelfScene({ isMobile }: { isMobile: boolean }) {
 
   return (
     <>
-      <SoftShadows size={12} samples={12} focus={0.52} />
       <PerspectiveCamera
         makeDefault
         position={cfg.position}
@@ -248,14 +278,7 @@ function ShelfScene({ isMobile }: { isMobile: boolean }) {
       />
       <directionalLight position={[-2.4, 3.8, 2.0]} intensity={0.18} color={SHELF_LIGHT_COLORS.warm} />
       <directionalLight position={[0, 2.8, 5.5]} intensity={0.1} color={SHELF_LIGHT_COLORS.accent} />
-      <spotLight
-        position={[0, 5.6, 3.8]}
-        angle={0.34}
-        penumbra={0.96}
-        intensity={0.28}
-        color={SHELF_LIGHT_COLORS.glow}
-        castShadow={false}
-      />
+      <pointLight position={[0, 5.6, 3.8]} intensity={0.28} color={SHELF_LIGHT_COLORS.glow} distance={12} decay={2} />
       <pointLight position={[0, 4.2, 0.6]} intensity={0.12} color={SHELF_LIGHT_COLORS.warm} distance={10} decay={2} />
       <Environment preset="apartment" environmentIntensity={0.32} />
       {shelfModels.map((shelf) => (

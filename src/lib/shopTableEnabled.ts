@@ -8,7 +8,7 @@ export const SHOP_SHELF_PRODUCTS_ENABLED = false;
 export const SHOP_SHELVES_ENABLED = false;
 
 /** Minimal line-type display shelves (3 per side). */
-export const SHOP_LINE_SHELVES_ENABLED = true;
+export const SHOP_LINE_SHELVES_ENABLED = false;
 
 /** Jewelry GLBs on line shelves — one product per shelf line. */
 export const SHOP_LINE_SHELF_PRODUCTS_ENABLED = true;

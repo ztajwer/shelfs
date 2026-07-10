@@ -1,28 +1,31 @@
 import { extendGltfLoader, getProductModelUrls, getModelUrl } from "./modelAssets";
 import { getLineShelfProductModelUrls } from "./lineShelfProductLayout";
+import { SHOP_GLB_FILES } from "./glbConfig";
 import { SHOP_LINE_SHELF_PRODUCTS_ENABLED, SHOP_SHELVES_ENABLED } from "./shopTableEnabled";
+import { useGLTF } from "@react-three/drei";
 
 const bytePrefetched = new Set<string>();
 const gltfTriggered = new Set<string>();
 let imagePipelineStarted = false;
 let modelPipelineScheduled = false;
 let shopStarted = false;
-let dreiPromise: Promise<typeof import("@react-three/drei")> | null = null;
 
-const SHOP_IMAGES = ["/background.png", "/main_mob_bg.png", "/imagemob.png", "/image.png"] as const;
+const SHOP_IMAGES = ["/imagemob.png", "/image.png"] as const;
 const DOOR_IMAGES = ["/door_sm.png", "/door_bg.png"] as const;
 const LOADER_IMAGES = ["/bg.png", "/logo_outline.png", "/wh_logo-removebg-preview.png"] as const;
 
-function getDrei() {
-  if (!dreiPromise) dreiPromise = import("@react-three/drei");
-  return dreiPromise;
-}
-
 function collectShopGlbUrls(): string[] {
-  const urls: string[] = [];
-  if (SHOP_SHELVES_ENABLED) urls.push(getModelUrl("shelf.glb"));
-  if (SHOP_LINE_SHELF_PRODUCTS_ENABLED) urls.push(...getLineShelfProductModelUrls());
-  return urls;
+  const urls = new Set<string>();
+  if (SHOP_SHELVES_ENABLED) urls.add(getModelUrl("shelf.glb"));
+  // Home page always renders shelf + table products via BoutiqueRoom.
+  for (const file of SHOP_GLB_FILES) {
+    if (file === "shelf.glb" && !SHOP_SHELVES_ENABLED) continue;
+    if (file.startsWith("pro")) urls.add(getModelUrl(file));
+  }
+  if (SHOP_LINE_SHELF_PRODUCTS_ENABLED) {
+    for (const url of getLineShelfProductModelUrls()) urls.add(url);
+  }
+  return [...urls];
 }
 
 /** Parallel HTTP warm — browser multiplexes on fast links. */
@@ -33,7 +36,6 @@ function warmHttpCache(url: string) {
 }
 
 function triggerGltfPreload(
-  useGLTF: typeof import("@react-three/drei").useGLTF,
   url: string,
 ) {
   if (gltfTriggered.has(url)) return;
@@ -41,14 +43,13 @@ function triggerGltfPreload(
   useGLTF.preload(url, false, false, extendGltfLoader);
 }
 
-async function preloadAllShopGltfParallel() {
-  const { useGLTF } = await getDrei();
+function preloadAllShopGltfParallel() {
   const urls = collectShopGlbUrls();
   if (urls.length === 0) return;
 
   urls.forEach((url) => {
     warmHttpCache(url);
-    triggerGltfPreload(useGLTF, url);
+    triggerGltfPreload(url);
   });
 }
 
@@ -68,9 +69,7 @@ export function prefetchProductBytes(index: number) {
 export function prefetchProductGlb(modelFile: string) {
   const url = getModelUrl(modelFile);
   warmHttpCache(url);
-  void getDrei().then(({ useGLTF }) => {
-    triggerGltfPreload(useGLTF, url);
-  });
+  triggerGltfPreload(url);
 }
 
 export function prefetchNextProductBytes(index: number) {
@@ -97,7 +96,7 @@ export function scheduleIdle(task: () => void) {
 
 /** Defer GLB download/parse until after loader animation completes. */
 export function scheduleModelPreloads(delayMs = 0) {
-  if ((!SHOP_SHELVES_ENABLED && !SHOP_LINE_SHELF_PRODUCTS_ENABLED) || modelPipelineScheduled) return;
+  if (modelPipelineScheduled) return;
   modelPipelineScheduled = true;
 
   const run = () => {
@@ -134,11 +133,9 @@ export function startShopModelLoads() {
 export function prefetchAllProductBytes() {
   const urls = collectShopGlbUrls();
   if (urls.length === 0) return;
-  void getDrei().then(({ useGLTF }) => {
-    urls.forEach((url) => {
-      warmHttpCache(url);
-      triggerGltfPreload(useGLTF, url);
-    });
+  urls.forEach((url) => {
+    warmHttpCache(url);
+    triggerGltfPreload(url);
   });
 }
 

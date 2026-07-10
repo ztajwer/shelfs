@@ -37,8 +37,11 @@ function LineShelfRow({
       <span className="line-shelf__highlight" />
       {SHOP_LINE_SHELF_PRODUCTS_ENABLED && (
         <div className="line-shelf__product-mount">
-          <LineShelfProductMini config={config1} />
-          <LineShelfProductMini config={config2} />
+          {side === "left" ? (
+            <LineShelfProductMini config={config1} />
+          ) : (
+            <LineShelfProductMini config={config2} />
+          )}
         </div>
       )}
     </div>

@@ -3,7 +3,7 @@ import type { ProductId } from "@/lib/products";
 import { LINE_SHELF_COUNT } from "@/lib/lineShelfLayout";
 
 /** Uniform product canvas size on each shelf line (px) */
-export const LINE_SHELF_PRODUCT_SIZE_PX = 65;
+export const LINE_SHELF_PRODUCT_SIZE_PX = 56;
 
 /** 3D model scale inside product canvas */
 export const LINE_SHELF_VIEW_PRODUCT_SIZE = 0.486;
@@ -55,6 +55,7 @@ export interface LineShelfProductConfig {
   productId: ProductId;
   productSizePx: number;
   displaySize: number;
+  isTable?: boolean;
 }
 
 export function getLineShelfProductModelUrls(): string[] {
