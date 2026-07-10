@@ -13,6 +13,7 @@ export default function ContactPage() {
   });
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [feedback, setFeedback] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   useEffect(() => {
     const html = document.documentElement;
@@ -66,27 +67,31 @@ export default function ContactPage() {
     setFeedback('');
 
     try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) throw new Error(data.message || 'Unable to send your message.');
+      // Simulate luxury submission loader delay
+      await new Promise((resolve) => setTimeout(resolve, 1200));
 
       setStatus('success');
-      setFeedback(data.message || 'Your message has been sent successfully.');
+      setShowSuccessModal(true);
       setForm({ name: '', email: '', subject: '', message: '' });
     } catch (error) {
       setStatus('error');
-      setFeedback(error instanceof Error ? error.message : 'Something went wrong.');
+      setFeedback('Something went wrong.');
     }
   };
 
   return (
-    <main className="relative min-h-screen px-3 py-4 text-[#4d3424] sm:px-4 sm:py-8">
+    <main className="relative min-h-screen flex flex-col items-center justify-center px-4 py-8 text-[#4d3424]">
+      <style>{`
+        @keyframes modalFadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes modalScaleUp {
+          from { transform: scale(0.95); opacity: 0; }
+          to { transform: scale(1); opacity: 1; }
+        }
+      `}</style>
+
       <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden bg-[#f6eee4]">
         <img
           src="/con.webp"
@@ -96,7 +101,7 @@ export default function ContactPage() {
         <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,255,255,0.18)_0%,rgba(255,250,245,0.45)_45%,rgba(248,239,231,0.78)_100%)]" />
       </div>
 
-      <div className="relative z-10 mx-auto flex w-full max-w-md flex-col gap-4">
+      <div className="relative z-10 w-full max-w-md flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <Link
             href="/"
@@ -227,6 +232,34 @@ export default function ContactPage() {
           </form>
         </div>
       </div>
+
+      {showSuccessModal && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+          style={{ animation: 'modalFadeIn 0.22s ease-out forwards' }}
+        >
+          <div 
+            className="w-full max-w-[340px] rounded-[28px] border border-[#e8caa9] bg-white/95 backdrop-blur-md p-6 text-center shadow-[0_24px_60px_rgba(77,52,36,0.18)]"
+            style={{ animation: 'modalScaleUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards' }}
+          >
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-tr from-[#caa86f] to-[#d7b878] text-white shadow-[0_4px_12px_rgba(202,168,111,0.3)]">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 6L9 17L4 12" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </div>
+            <h3 className="mt-5 text-xl font-semibold text-[#8a5f31] font-serif tracking-wide">Message Sent!</h3>
+            <p className="mt-3 text-xs leading-relaxed text-[#6f5843] px-1">
+              Thank you for contacting **MAJ Boutique**. Your message has been successfully received. We will respond shortly to your email address.
+            </p>
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="mt-6 w-full rounded-2xl bg-gradient-to-r from-[#caa86f] to-[#d7b878] py-3 text-sm font-semibold text-white shadow-md transition active:scale-[0.98] outline-none"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

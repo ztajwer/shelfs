@@ -123,48 +123,39 @@ function ShelfInteriorLights({ root }: { root: THREE.Object3D }) {
 
   return (
     <group>
-      {layout.points.map((level, index) => (
-        <group key={index}>
-          <ShelfLedStrip
-            position={[level.glow.x, level.glow.y, level.glow.z + 0.006]}
-            width={layout.stripWidth}
-            height={layout.stripHeight}
-          />
-          <pointLight
-            position={level.point}
-            intensity={0.95}
-            color={SHELF_LIGHT_COLORS.key}
-            distance={layout.distance}
-            decay={2}
-          />
-          <pointLight
-            position={level.glow}
-            intensity={0.55}
-            color={SHELF_LIGHT_COLORS.warm}
-            distance={layout.distance * 0.75}
-            decay={2.4}
-          />
-          <pointLight
-            position={[level.glow.x, level.glow.y + 0.025, level.glow.z]}
-            intensity={0.58}
-            color={SHELF_LIGHT_COLORS.accent}
-            distance={layout.distance * 1.15}
-            decay={2}
-          />
-          <ShelfLedAccent position={[level.glow.x, level.glow.y, level.glow.z + 0.008]} />
-          <ShelfLedAccent
-            position={[level.glow.x - layout.stripWidth * 0.35, level.glow.y, level.glow.z + 0.006]}
-            scale={0.008}
-          />
-          <ShelfLedAccent
-            position={[level.glow.x + layout.stripWidth * 0.35, level.glow.y, level.glow.z + 0.006]}
-            scale={0.008}
-          />
-        </group>
-      ))}
+      {layout.points.map((level, index) => {
+        // Only render lights on levels with products (0, 2, 4)
+        if (index !== 0 && index !== 2 && index !== 4) return null;
+
+        return (
+          <group key={index}>
+            <ShelfLedStrip
+              position={[level.glow.x, level.glow.y, level.glow.z + 0.006]}
+              width={layout.stripWidth}
+              height={layout.stripHeight}
+            />
+            <pointLight
+              position={level.point}
+              intensity={1.25}
+              color={SHELF_LIGHT_COLORS.key}
+              distance={layout.distance * 1.3}
+              decay={2}
+            />
+            <ShelfLedAccent position={[level.glow.x, level.glow.y, level.glow.z + 0.008]} />
+            <ShelfLedAccent
+              position={[level.glow.x - layout.stripWidth * 0.35, level.glow.y, level.glow.z + 0.006]}
+              scale={0.008}
+            />
+            <ShelfLedAccent
+              position={[level.glow.x + layout.stripWidth * 0.35, level.glow.y, level.glow.z + 0.006]}
+              scale={0.008}
+            />
+          </group>
+        );
+      })}
       <pointLight
         position={layout.topGlow}
-        intensity={0.38}
+        intensity={0.48}
         color={SHELF_LIGHT_COLORS.accent}
         distance={layout.distance * 0.9}
         decay={2}
@@ -265,8 +256,7 @@ function ShelfScene({ isMobile }: { isMobile: boolean }) {
         intensity={0.44}
         color={SHELF_LIGHT_COLORS.key}
         castShadow
-        shadow-mapSize-width={2048}
-        shadow-mapSize-height={2048}
+        shadow-mapSize={[1024, 1024]}
         shadow-camera-near={0.5}
         shadow-camera-far={12}
         shadow-camera-left={-3}
