@@ -1,5 +1,10 @@
 {
   "buildCommand": "npm run build",
+  "build": {
+    "env": {
+      "NEXT_PUBLIC_GLB_BASE_URL": "https://media.githubusercontent.com/media/ztajwer/shelfs/main/public"
+    }
+  },
   "env": {
     "NEXT_PUBLIC_GLB_BASE_URL": "https://media.githubusercontent.com/media/ztajwer/shelfs/main/public"
   }
