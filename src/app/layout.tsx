@@ -97,7 +97,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://media.githubusercontent.com" crossOrigin="anonymous" />
         <link
           rel="dns-prefetch"
-          href="https://media.githubusercontent.com/media/ztajwer/Responsive/main/public"
+          href="https://media.githubusercontent.com/media/ztajwer/shelfs/main/public"
         />
         {SHOP_SHELVES_ENABLED && (
           <link
