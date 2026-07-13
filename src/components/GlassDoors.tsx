@@ -12,78 +12,67 @@ interface GlassDoorsProps {
   animRef?: MutableRefObject<{ phase: string }>;
 }
 
-export const PANEL_W = 1.28;
-export const PANEL_H = 2.84;
+export const PANEL_W = 1.4;
+export const PANEL_H = 4.8;
 export const DOOR_ASSEMBLY_H = PANEL_H + 0.2;
-const PANEL_D = 0.05;
+
+const GLASS_W = 1.66;
+const GLASS_H = 5.0;
+const PANEL_D = 0.04;
 const MAX_OPEN = Math.PI * 0.44;
-const HANDLE_Y = -0.04;
-const HANDLE_X = PANEL_W * 0.38;
 
-const GOLD = "#D4AF37";
-const GOLD_LIGHT = "#F0D878";
-const GOLD_DEEP = "#B8892A";
-const GOLD_RICH = "#C9A030";
+const FRAME_COLOR = "#D4AF37"; // Shiny gold
 
-function GoldMat({ roughness = 0.14, color = GOLD }: { roughness?: number; color?: string }) {
+function FrameMat({ roughness = 0.1, metalness = 0.95 }: { roughness?: number; metalness?: number }) {
   return (
     <meshPhysicalMaterial
-      color={color}
-      metalness={0.99}
+      color={FRAME_COLOR}
+      metalness={metalness}
       roughness={roughness}
-      envMapIntensity={1.45}
-      clearcoat={0.75}
-      clearcoatRoughness={0.06}
+      clearcoat={1.0}
+      clearcoatRoughness={0.1}
+      envMapIntensity={1.5}
     />
   );
 }
 
-function GoldenGlassMat() {
+function ClearGlassMat() {
   return (
     <meshPhysicalMaterial
-      color="#E8C872"
-      metalness={0.48}
-      roughness={0.05}
-      transmission={0.48}
-      thickness={0.85}
-      ior={1.52}
-      envMapIntensity={1.55}
-      transparent
-      opacity={0.92}
+      color="#ffffff"
+      transmission={0.8} // 80% see through
+      opacity={1.0} // Prevents HTML background image from showing through
+      transparent={true}
+      roughness={0.1} // Just a little blurry
+      metalness={0.1}
+      ior={1.5}
+      thickness={0.05}
+      envMapIntensity={1.5}
+      clearcoat={1.0}
+      clearcoatRoughness={0.05}
       side={THREE.DoubleSide}
-      reflectivity={0.88}
-      attenuationColor="#D4AF37"
-      attenuationDistance={0.55}
+      reflectivity={0.6}
     />
   );
 }
 
 function DoorHandle({ side }: { side: "left" | "right" }) {
-  const x = side === "left" ? HANDLE_X : -HANDLE_X;
+  const handleInset = 0.08;
+  const x = side === "left" ? GLASS_W / 2 - handleInset : -GLASS_W / 2 + handleInset;
 
   return (
-    <group position={[x, HANDLE_Y, PANEL_D / 2 + 0.05]}>
-      <mesh position={[0, 0, -0.014]} castShadow>
-        <boxGeometry args={[0.065, 0.28, 0.018]} />
-        <GoldMat roughness={0.22} color={GOLD_DEEP} />
+    <group position={[x, -0.15, PANEL_D / 2 + 0.025]}>
+      <mesh castShadow>
+        <cylinderGeometry args={[0.007, 0.007, 1.2, 16]} />
+        <FrameMat roughness={0.2} metalness={0.95} />
       </mesh>
-      <mesh position={[0, 0, -0.008]} castShadow>
-        <boxGeometry args={[0.048, 0.24, 0.01]} />
-        <GoldMat roughness={0.12} />
+      <mesh position={[0, 0.45, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.005, 0.005, 0.03, 16]} />
+        <FrameMat roughness={0.2} metalness={0.95} />
       </mesh>
-      <mesh rotation={[0, 0, Math.PI / 2]} position={[0, 0, 0.065]} castShadow>
-        <cylinderGeometry args={[0.013, 0.013, 0.22, 24]} />
-        <GoldMat roughness={0.1} color={GOLD_LIGHT} />
-      </mesh>
-      {[-0.09, 0.09].map((offset) => (
-        <mesh key={offset} position={[0, offset, 0.032]} castShadow>
-          <cylinderGeometry args={[0.009, 0.009, 0.065, 14]} />
-          <GoldMat roughness={0.15} />
-        </mesh>
-      ))}
-      <mesh position={[0, -0.13, 0.025]} castShadow>
-        <cylinderGeometry args={[0.016, 0.016, 0.032, 16]} />
-        <meshPhysicalMaterial color="#2A2018" metalness={0.92} roughness={0.12} envMapIntensity={0.8} />
+      <mesh position={[0, -0.45, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.005, 0.005, 0.03, 16]} />
+        <FrameMat roughness={0.2} metalness={0.95} />
       </mesh>
     </group>
   );
@@ -102,14 +91,12 @@ function DoorPanel({
   const angle = useRef(0);
 
   const hingeX = side === "left" ? -PANEL_W : PANEL_W;
-  const panelCenterX = side === "left" ? PANEL_W / 2 : -PANEL_W / 2;
   const openDir = side === "left" ? -1 : 1;
-  const hingeEdgeX = side === "left" ? -PANEL_W / 2 : PANEL_W / 2;
 
   useFrame((_, delta) => {
     if (!pivotRef.current) return;
     const target = targetAngleRef.current * openDir;
-    const phase = animRef?.current.phase;
+    const phase = animRef?.current?.phase;
     if (phase === "complete") {
       angle.current = target;
     } else {
@@ -119,35 +106,47 @@ function DoorPanel({
     pivotRef.current.rotation.y = angle.current;
   });
 
+  const centerGap = 0.002;
+  const innerEdgeLocal = side === "left" ? PANEL_W - centerGap : -PANEL_W + centerGap;
+  const outerEdgeLocal = side === "left" ? PANEL_W - GLASS_W : -PANEL_W + GLASS_W;
+  const panelCenterX = (innerEdgeLocal + outerEdgeLocal) / 2;
+
+  const frameThickness = 0.012;
+
   return (
     <group position={[hingeX, 0, 0]}>
       <group ref={pivotRef}>
         <group position={[panelCenterX, 0, 0]}>
-          <mesh position={[0, 0, -PANEL_D / 2 - 0.014]} castShadow receiveShadow>
-            <boxGeometry args={[PANEL_W + 0.08, PANEL_H + 0.08, 0.05]} />
-            <GoldMat roughness={0.1} color={GOLD_DEEP} />
-          </mesh>
-          <mesh position={[0, 0, -PANEL_D / 2 - 0.005]} castShadow>
-            <boxGeometry args={[PANEL_W + 0.03, PANEL_H + 0.03, 0.028]} />
-            <GoldMat roughness={0.12} color={GOLD_RICH} />
-          </mesh>
           <mesh castShadow receiveShadow>
-            <boxGeometry args={[PANEL_W - 0.1, PANEL_H - 0.1, PANEL_D]} />
-            <GoldenGlassMat />
+            <boxGeometry args={[GLASS_W, GLASS_H, PANEL_D * 0.5]} />
+            <ClearGlassMat />
           </mesh>
+
+          <mesh position={[0, GLASS_H / 2 - frameThickness / 2, 0]} castShadow>
+            <boxGeometry args={[GLASS_W, frameThickness, PANEL_D]} />
+            <FrameMat />
+          </mesh>
+          <mesh position={[0, -GLASS_H / 2 + frameThickness / 2, 0]} castShadow>
+            <boxGeometry args={[GLASS_W, frameThickness, PANEL_D]} />
+            <FrameMat />
+          </mesh>
+          <mesh position={[side === "left" ? -GLASS_W / 2 + frameThickness / 2 : GLASS_W / 2 - frameThickness / 2, 0, 0]} castShadow>
+            <boxGeometry args={[frameThickness, GLASS_H - frameThickness * 2, PANEL_D]} />
+            <FrameMat />
+          </mesh>
+
           <DoorHandle side={side} />
-          {[PANEL_H * 0.38, 0, -PANEL_H * 0.38].map((y) => (
-            <group key={y} position={[hingeEdgeX, y, -0.01]}>
-              <mesh castShadow>
-                <cylinderGeometry args={[0.018, 0.018, 0.08, 16]} />
-                <GoldMat roughness={0.28} color={GOLD_DEEP} />
-              </mesh>
-              <mesh position={[side === "left" ? 0.04 : -0.04, 0, 0]} castShadow>
-                <boxGeometry args={[0.055, 0.038, 0.038]} />
-                <GoldMat roughness={0.25} />
-              </mesh>
-            </group>
-          ))}
+
+          <group position={[-panelCenterX, 0, -0.01]}>
+            {[GLASS_H * 0.4, 0, -GLASS_H * 0.4].map((y) => (
+              <group key={y} position={[0, y, 0]}>
+                <mesh castShadow>
+                  <cylinderGeometry args={[0.012, 0.012, 0.06, 16]} />
+                  <FrameMat roughness={0.4} />
+                </mesh>
+              </group>
+            ))}
+          </group>
         </group>
       </group>
     </group>
@@ -155,21 +154,21 @@ function DoorPanel({
 }
 
 function DoorFrame() {
-  const totalW = PANEL_W * 2 + 0.14;
+  const totalW = GLASS_W * 2 + 0.01;
 
   return (
-    <group>
-      <mesh position={[0, 0, 0.012]} castShadow>
-        <boxGeometry args={[0.032, PANEL_H + 0.04, 0.058]} />
-        <GoldMat roughness={0.13} />
+    <group position={[0, 0, -0.02]}>
+      <mesh position={[0, GLASS_H / 2 + 0.01, 0]} castShadow>
+        <boxGeometry args={[totalW, 0.02, 0.04]} />
+        <FrameMat roughness={0.5} />
       </mesh>
-      <mesh position={[0, PANEL_H / 2 + 0.12, 0.005]} castShadow>
-        <boxGeometry args={[totalW * 0.6, 0.07, 0.04]} />
-        <GoldMat roughness={0.1} color={GOLD_LIGHT} />
+      <mesh position={[-totalW / 2 - 0.01, 0, 0]} castShadow>
+        <boxGeometry args={[0.02, GLASS_H + 0.04, 0.04]} />
+        <FrameMat roughness={0.5} />
       </mesh>
-      <mesh position={[0, -PANEL_H / 2 - 0.01, 0.07]} castShadow>
-        <boxGeometry args={[totalW + 0.15, 0.014, 0.035]} />
-        <GoldMat roughness={0.1} />
+      <mesh position={[totalW / 2 + 0.01, 0, 0]} castShadow>
+        <boxGeometry args={[0.02, GLASS_H + 0.04, 0.04]} />
+        <FrameMat roughness={0.5} />
       </mesh>
     </group>
   );
@@ -191,7 +190,7 @@ export default function GlassDoors({ progressRef, frameRef, animRef }: GlassDoor
       shadowMatRef.current.opacity = 0.14 + p * 0.16;
     }
 
-    if (groupRef.current && frameRef) {
+    if (groupRef.current && frameRef?.current) {
       const { scale, groupZ } = frameRef.current;
       groupRef.current.scale.set(scale.x, scale.y, scale.x);
       groupRef.current.position.z = groupZ;
@@ -203,7 +202,7 @@ export default function GlassDoors({ progressRef, frameRef, animRef }: GlassDoor
       <DoorFrame />
       <DoorPanel side="left" targetAngleRef={leftTargetRef} animRef={animRef} />
       <DoorPanel side="right" targetAngleRef={rightTargetRef} animRef={animRef} />
-      <mesh position={[0, -PANEL_H / 2 - 0.026, 0.22]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
+      <mesh position={[0, -GLASS_H / 2 - 0.026, 0.22]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[12, 5]} />
         <shadowMaterial ref={shadowMatRef} transparent opacity={0.14} color="#4A3728" />
       </mesh>

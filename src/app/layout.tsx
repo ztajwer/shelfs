@@ -108,7 +108,6 @@ export default function RootLayout({
           />
         )}
         <link rel="preload" href="/imagemob.png" as="image" />
-        <link rel="preload" href="/vidmob.mp4" as="video" type="video/mp4" />
         <link rel="preload" href="/image.png" as="image" />
         <link rel="preload" href="/logo_outline.png" as="image" />
         <link rel="preload" href="/wh_logo-removebg-preview.png" as="image" />

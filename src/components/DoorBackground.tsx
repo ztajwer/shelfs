@@ -11,7 +11,7 @@ export default function DoorBackground({ fadeProgress = 0 }: DoorBackgroundProps
   const opacity = Math.max(0, 1 - fadeProgress * 1.08);
 
   useEffect(() => {
-    const src = window.innerWidth >= 768 ? "/door_bg.png" : "/door_sm.png";
+    const src = "/door_sm.jpeg"; // Always use door_sm.jpeg
     const img = new window.Image();
     img.src = src;
   }, []);
@@ -31,7 +31,7 @@ export default function DoorBackground({ fadeProgress = 0 }: DoorBackgroundProps
         aria-hidden
       >
         <Image
-          src="/door_bg.png"
+          src="/door_sm.jpeg"
           alt=""
           fill
           priority
