@@ -34,6 +34,7 @@ const PRODUCT_SHELF_SCALES: Record<ProductId, number> = {
   pro4: 0.43, // Cascade Necklace
   pro5: 0.33, // Starlight Earrings
   pro6: 0.28, // Signature Perfume Showcase
+  proo: 0.65, // Increased scale for bigger product
 };
 
 // Custom resolver to build correct metadata config for any product in any slot
@@ -72,6 +73,7 @@ function getTableProductConfig(
     pro4: 0.52, // Cascade Necklace
     pro5: 0.44,
     pro6: 0.40,
+    proo: 0.45,
   };
 
   const sizePx = tier === "upper" ? 48 : tier === "middle" ? 55 : 62;
@@ -130,15 +132,48 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
           aria-hidden
           className="absolute pointer-events-none"
           style={{
-            top: "27%",
-            left: "9.5%",
-            width: "clamp(150px, 38vw, 530px)", // Width 50px bigger
-            height: "clamp(130px, 23vh, 240px)", // Made height 10px smaller
+            top: "32%", // Placed a little bottom
+            left: "8%", // More space between shelves
+            width: "clamp(85px, calc(40vw - 25px), 500px)", // A little smaller
+            height: "clamp(45px, calc(34vh - 145px), 330px)", // A little smaller
             objectFit: "fill",
-            transform: "translateY(15px)",
             zIndex: 10,
           }}
         />
+
+        {/* Left shelf 3D products overlay container */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            top: "32%",
+            left: "8%", // More space between shelves
+            width: "clamp(85px, calc(40vw - 25px), 500px)",
+            height: "clamp(45px, calc(34vh - 145px), 330px)",
+            zIndex: 15,
+          }}
+        >
+          <div className="pointer-events-auto" style={{ position: "absolute", top: "75%", left: "50%", transform: "translate(-50%, -93%)" }}>
+            <div style={{ position: "relative", zIndex: 20 }}>
+              <LineShelfProductMini config={getCustomProductConfig("pro1", 0, "left")} mountDelay={120} />
+            </div>
+            {/* Display Pedestal Box */}
+            <div 
+              style={{
+                position: "absolute",
+                bottom: "15px", 
+                left: "50%",
+                transform: "translateX(-50%)", 
+                width: "45px", 
+                height: "18px", 
+                background: "#D6B697", 
+                border: "1px solid rgba(212, 175, 55, 0.4)", 
+                boxShadow: "0 6px 12px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)",
+                borderRadius: "2px",
+                zIndex: 10
+              }}
+            />
+          </div>
+        </div>
 
         {/* Right shelf PNG — aligned to the right shelf unit in image.png (mirrored) */}
         <img
@@ -147,25 +182,59 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
           aria-hidden
           className="absolute pointer-events-none"
           style={{
-            top: "27%",
-            right: "9.5%",
-            width: "clamp(150px, 38vw, 530px)", // Width 50px bigger
-            height: "clamp(130px, 23vh, 240px)", // Made height 10px smaller
+            top: "32%", // Placed a little bottom
+            right: "8%", // More space between shelves
+            width: "clamp(85px, calc(40vw - 25px), 500px)", // A little smaller
+            height: "clamp(45px, calc(34vh - 145px), 330px)", // A little smaller
             objectFit: "fill",
-            transform: "scaleX(-1) translateY(15px)",
+            transform: "scaleX(-1)",
             zIndex: 10,
           }}
         />
 
+        {/* Right shelf 3D products overlay container */}
+        <div
+          className="absolute pointer-events-none"
+          style={{
+            top: "32%",
+            right: "8%", // More space between shelves
+            width: "clamp(85px, calc(40vw - 25px), 500px)",
+            height: "clamp(45px, calc(34vh - 145px), 330px)",
+            zIndex: 15,
+          }}
+        >
+          <div className="pointer-events-auto" style={{ position: "absolute", top: "75%", left: "50%", transform: "translate(-50%, -93%)" }}>
+            <div style={{ position: "relative", zIndex: 20 }}>
+              <LineShelfProductMini config={getCustomProductConfig("pro2", 2, "right")} mountDelay={360} />
+            </div>
+            {/* Display Pedestal Box */}
+            <div 
+              style={{
+                position: "absolute",
+                bottom: "15px", 
+                left: "50%",
+                transform: "translateX(-50%)", 
+                width: "45px", 
+                height: "18px", 
+                background: "#D6B697", 
+                border: "1px solid rgba(212, 175, 55, 0.4)", 
+                boxShadow: "0 6px 12px rgba(0,0,0,0.15), inset 0 2px 4px rgba(255,255,255,0.4)",
+                borderRadius: "2px",
+                zIndex: 10
+              }}
+            />
+          </div>
+        </div>
+
         {/* 3D Display Table — inside parallax so it moves with the background */}
-        <Table3D opacity={1} />
+        {/* <Table3D opacity={1} /> */}
 
         {/* Luxury 3D Product Carousel positioned directly on the display table surface */}
-        <div
+        {/* <div
           className="absolute bottom-[375px] md:bottom-[460px] left-[50%] -translate-x-1/2 z-[65] w-[92%] max-w-[460px] md:max-w-[720px] flex justify-center items-center pointer-events-none"
         >
           <ProductCarousel3D />
-        </div>
+        </div> */}
 
       </BoutiqueParallaxBg>
 

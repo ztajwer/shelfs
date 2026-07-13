@@ -117,7 +117,9 @@ const ShelfProductGlb = memo(function ShelfProductGlb({
   useLayoutEffect(() => {
     fitProductToUniformSize(scene, config.displaySize);
     optimizeModelForGpu(scene, textureMax);
-    prepareProductMaterials(scene, { castShadow: true, receiveShadow: true, customization, productId: config.productId });
+    if (config.productId !== "proo") {
+      prepareProductMaterials(scene, { castShadow: true, receiveShadow: true, customization, productId: config.productId });
+    }
     scene.traverse((child) => {
       const mesh = child as THREE.Mesh;
       if (mesh.isMesh) mesh.renderOrder = 12;
@@ -125,16 +127,15 @@ const ShelfProductGlb = memo(function ShelfProductGlb({
     invalidate();
   }, [scene, config.displaySize, textureMax, customization, invalidate, config.productId]);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (groupRef.current) {
-      const isTopLeftPerfume = config.productId === "pro6" && config.slotIndex === 0 && config.side === "left";
-      groupRef.current.rotation.y = isTopLeftPerfume ? Math.PI : 0;
+      // Auto-rotation
+      groupRef.current.rotation.y += delta * 0.5;
 
-      // Scale model in sync with HTML container scale
+      // Scale model in sync with HTML container scale (bigger on hover)
       let hoverScale = 1.0;
-      if (isSelected && config.isTable) {
-        const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
-        hoverScale = isDesktop ? 1.069 : 1.105;
+      if (isSelected) {
+        hoverScale = 1.15;
       }
       groupRef.current.scale.lerp(new THREE.Vector3(hoverScale, hoverScale, hoverScale), 0.22);
     }
@@ -199,7 +200,9 @@ const ShelfProductFbx = memo(function ShelfProductFbx({
   useLayoutEffect(() => {
     fitProductToUniformSize(scene, config.displaySize);
     optimizeModelForGpu(scene, textureMax);
-    prepareProductMaterials(scene, { castShadow: true, receiveShadow: true, customization, productId: config.productId });
+    if (config.productId !== "proo") {
+      prepareProductMaterials(scene, { castShadow: true, receiveShadow: true, customization, productId: config.productId });
+    }
     scene.traverse((child) => {
       const mesh = child as THREE.Mesh;
       if (mesh.isMesh) mesh.renderOrder = 12;
@@ -207,16 +210,15 @@ const ShelfProductFbx = memo(function ShelfProductFbx({
     invalidate();
   }, [scene, config.displaySize, textureMax, customization, invalidate, config.productId]);
 
-  useFrame(() => {
+  useFrame((state, delta) => {
     if (groupRef.current) {
-      const isTopLeftPerfume = config.productId === "pro6" && config.slotIndex === 0 && config.side === "left";
-      groupRef.current.rotation.y = isTopLeftPerfume ? Math.PI : 0;
+      // Auto-rotation
+      groupRef.current.rotation.y += delta * 0.5;
 
-      // Scale model in sync with HTML container scale
+      // Scale model in sync with HTML container scale (bigger on hover)
       let hoverScale = 1.0;
-      if (isSelected && config.isTable) {
-        const isDesktop = typeof window !== "undefined" && window.innerWidth >= 768;
-        hoverScale = isDesktop ? 1.069 : 1.105;
+      if (isSelected) {
+        hoverScale = 1.15;
       }
       groupRef.current.scale.lerp(new THREE.Vector3(hoverScale, hoverScale, hoverScale), 0.22);
     }

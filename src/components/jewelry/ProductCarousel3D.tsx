@@ -15,6 +15,7 @@ const CAROUSEL_SCALES: Record<ProductId, number> = {
   pro4: 0.54, // Cascade Necklace
   pro5: 0.38, // Starlight Earrings (Sovereign Pendant)
   pro6: 0.32, // Signature Perfume Showcase
+  proo: 0.40, // New exclusive addition
 };
 
 function getCarouselProductConfig(productId: ProductId, index: number): LineShelfProductConfig {
