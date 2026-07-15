@@ -3,19 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { LoadingProvider } from "@/context/LoadingContext";
 import Loader from "./Loader";
-import DoorBackground from "./DoorBackground";
-import UIOverlay from "./UIOverlay";
-import ScrollOpenModal from "./ScrollOpenModal";
-import DoorChimeAudio from "./DoorChimeAudio";
 import CursorGlitterTrail from "./CursorGlitterTrail";
-import DoorSceneCanvas from "./DoorSceneCanvas";
 import ModelPreloader from "./ModelPreloader";
 import ShopExperience from "./jewelry/ShopExperience";
-import {
-  preloadBoutiqueAudio,
-  startBoutiqueAudioFromGesture,
-  stopBoutiqueAudio,
-} from "@/lib/boutiqueAudio";
+import VideoIntro from "./VideoIntro";
 import { getDeviceProfile } from "@/lib/deviceProfile";
 import { useExperienceScroll } from "@/hooks/useExperienceScroll";
 
@@ -26,7 +17,6 @@ function ExperienceInner() {
     sessionStorage.removeItem("maj_boutique_entered");
   }, []);
 
-  const [scrollModalOpen, setScrollModalOpen] = useState(false);
   const [showCursorGlitter, setShowCursorGlitter] = useState(false);
   const {
     scrollRef,
@@ -37,60 +27,44 @@ function ExperienceInner() {
     canvasOpacity,
     scrollHeight,
     getOpenDistance,
+    forceEnter,
   } = useExperienceScroll(ready);
+
+  const [flashPhase, setFlashPhase] = useState<"none" | "start" | "in" | "out">("none");
+
+  const handleVideoEnd = useCallback(() => {
+    setFlashPhase("start");
+    
+    // Start fade-in on next frame to ensure CSS transition fires
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        setFlashPhase("in");
+      });
+    });
+
+    // 1.2s for the light to completely blind the screen
+    setTimeout(() => {
+      forceEnter();
+      setFlashPhase("out");
+      
+      // 3s for the light to beautifully fade away revealing the shop
+      setTimeout(() => {
+        setFlashPhase("none");
+      }, 3000);
+    }, 1200);
+  }, [forceEnter]);
 
   const handleLoadComplete = useCallback(() => {
     setReady(true);
   }, []);
 
-  const doorOpacity = Math.min(1, Math.max(0, canvasOpacity));
   const onDoorScreen = ready && !entered;
-
-  const closeScrollModal = useCallback(() => {
-    setScrollModalOpen(false);
-  }, []);
-
-  useEffect(() => {
-    if (onDoorScreen) setScrollModalOpen(true);
-    else setScrollModalOpen(false);
-  }, [onDoorScreen]);
-
-  useEffect(() => {
-    if (!scrollModalOpen || !onDoorScreen) return;
-    const el = scrollRef.current;
-    if (!el) return;
-
-    const onScroll = () => {
-      if (el.scrollTop > 1) closeScrollModal();
-    };
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) > 0) closeScrollModal();
-    };
-    const onTouchMove = () => closeScrollModal();
-
-    el.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("wheel", onWheel, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
-
-    return () => {
-      el.removeEventListener("scroll", onScroll);
-      window.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchmove", onTouchMove);
-    };
-  }, [scrollModalOpen, onDoorScreen, scrollRef, closeScrollModal]);
 
   useEffect(() => {
     setShowCursorGlitter(!getDeviceProfile().lowEnd);
   }, []);
 
-  useEffect(() => {
-    if (!ready) return;
-    preloadBoutiqueAudio();
-  }, [ready]);
 
-  useEffect(() => {
-    if (entered) stopBoutiqueAudio();
-  }, [entered]);
 
   useEffect(() => {
     if (!ready || !entered) return;
@@ -152,26 +126,12 @@ function ExperienceInner() {
       const openDist = getOpenDistance();
       const minScroll = entered ? openDist : 0;
       el.scrollTop = Math.min(maxScroll, Math.max(minScroll, el.scrollTop + e.deltaY));
-      if (!entered) {
-        const openDist = getOpenDistance();
-        const p = Math.min(1, Math.max(0, el.scrollTop / openDist));
-        startBoutiqueAudioFromGesture(p);
-      }
-    };
-
-    const onTouchMove = () => {
-      if (entered) return;
-      const openDist = getOpenDistance();
-      const p = Math.min(1, Math.max(0, el.scrollTop / openDist));
-      startBoutiqueAudioFromGesture(p);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
 
     return () => {
       window.removeEventListener("wheel", onWheel);
-      el.removeEventListener("touchmove", onTouchMove);
     };
   }, [ready, entered, scrollRef, getOpenDistance]);
 
@@ -181,34 +141,31 @@ function ExperienceInner() {
       {!showCursorGlitter ? null : <CursorGlitterTrail />}
       <Loader onComplete={handleLoadComplete} />
 
-      {ready && (
-        <DoorChimeAudio
-          active={ready}
-          doorProgress={doorProgress}
-          doorScreenActive={onDoorScreen}
-        />
-      )}
-
-      {onDoorScreen && <DoorBackground fadeProgress={doorProgress} />}
-
-      {ready && entered && <ShopExperience visible={entered} focusProgress={focusProgress} />}
-      {onDoorScreen && (
-        <DoorSceneCanvas
-          progressRef={progressRef}
-          brightness={0}
-          opacity={doorOpacity}
-        />
-      )}
+      {ready && <ShopExperience visible={true} focusProgress={focusProgress} />}
 
       {onDoorScreen && (
-        <ScrollOpenModal open={scrollModalOpen} onClose={closeScrollModal} />
+        <VideoIntro opacity={1} onVideoEnd={handleVideoEnd} />
       )}
-      {onDoorScreen && (
-        <UIOverlay
-          doorProgress={doorProgress}
-          showHint={!scrollModalOpen && doorProgress < 0.88}
-        />
-      )}
+
+      {/* The beautiful light flash transition overlay */}
+      <div 
+        className={`fixed inset-0 z-[100] pointer-events-none ease-in-out ${
+          flashPhase === "in" ? "opacity-100 duration-[1200ms]" : 
+          flashPhase === "out" ? "opacity-0 duration-[3000ms]" : "opacity-0 duration-0"
+        }`}
+        style={{
+          background: "radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(253,246,227,1) 40%, rgba(255,215,0,0.6) 100%)",
+          mixBlendMode: "screen",
+          visibility: flashPhase === "none" ? "hidden" : "visible",
+          transitionProperty: "opacity"
+        }}
+      >
+        <div className="absolute inset-0 bg-white/60 animate-pulse mix-blend-overlay" style={{ animationDuration: '0.8s' }}></div>
+        <div className="absolute top-1/4 left-1/4 w-[60vw] h-[60vw] bg-white rounded-full blur-[100px] opacity-90 animate-ping" style={{ animationDuration: '2s' }}></div>
+        <div className="absolute bottom-1/4 right-1/4 w-[70vw] h-[70vw] bg-[#fff5cc] rounded-full blur-[120px] opacity-90 animate-pulse" style={{ animationDuration: '1.5s' }}></div>
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[100vw] h-[100vw] bg-white rounded-full blur-[150px] opacity-100"></div>
+        <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-[#ffeaa7] rounded-full blur-[130px] opacity-70 animate-pulse" style={{ animationDuration: '2.5s' }}></div>
+      </div>
 
 
       {ready && (

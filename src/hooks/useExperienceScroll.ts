@@ -237,6 +237,21 @@ export function useExperienceScroll(ready: boolean) {
   const brightness = Math.min(1, Math.max(0, (doorProgress - 0.2) / 0.75));
   const canvasOpacity = Math.min(1, Math.max(0, 1 - (doorProgress - 0.55) / 0.45));
 
+  const forceEnter = useCallback(() => {
+    const openDist = getOpenDistance();
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = openDist;
+    }
+    progressRef.current = 1;
+    setDoorProgress(1);
+    shopLatchedRef.current = true;
+    enteredAtScrollRef.current = openDist;
+    setEntered(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem("maj_boutique_entered", "true");
+    }
+  }, [getOpenDistance]);
+
   return {
     scrollRef,
     progressRef,
@@ -247,5 +262,6 @@ export function useExperienceScroll(ready: boolean) {
     brightness,
     canvasOpacity,
     getOpenDistance,
+    forceEnter,
   };
 }

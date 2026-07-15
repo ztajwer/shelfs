@@ -1,10 +1,15 @@
 "use client";
 
-import { useRef, type MutableRefObject } from "react";
+import { useRef, useMemo, type MutableRefObject } from "react";
 import { useFrame } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
 import * as THREE from "three";
 
 import type { DoorFrameState } from "@/lib/doorFraming";
+import { getModelUrl, extendGltfLoader } from "@/lib/modelAssets";
+import { applyDoorMaterials } from "@/lib/shelfMaterials";
+
+const DOOR_MODEL_URL = getModelUrl("door_col.glb");
 
 interface GlassDoorsProps {
   progressRef: MutableRefObject<number>;
@@ -21,7 +26,7 @@ const GLASS_H = 5.0;
 const PANEL_D = 0.04;
 const MAX_OPEN = Math.PI * 0.44;
 
-const FRAME_COLOR = "#D4AF37"; // Shiny gold
+const FRAME_COLOR = "#251E1A"; // Dark bronze/espresso to match the frame
 
 function FrameMat({ roughness = 0.1, metalness = 0.95 }: { roughness?: number; metalness?: number }) {
   return (
@@ -39,39 +44,101 @@ function FrameMat({ roughness = 0.1, metalness = 0.95 }: { roughness?: number; m
 function ClearGlassMat() {
   return (
     <meshPhysicalMaterial
-      color="#ffffff"
-      transmission={0.8} // 80% see through
-      opacity={1.0} // Prevents HTML background image from showing through
+      color="#000000"
+      transmission={0}
+      opacity={0.35}
       transparent={true}
-      roughness={0.1} // Just a little blurry
-      metalness={0.1}
+      roughness={0.15}
+      metalness={0.3}
       ior={1.5}
       thickness={0.05}
       envMapIntensity={1.5}
       clearcoat={1.0}
       clearcoatRoughness={0.05}
       side={THREE.DoubleSide}
-      reflectivity={0.6}
+      reflectivity={0.8}
     />
   );
 }
 
-function DoorHandle({ side }: { side: "left" | "right" }) {
-  const handleInset = 0.08;
-  const x = side === "left" ? GLASS_W / 2 - handleInset : -GLASS_W / 2 + handleInset;
+function DoorLattice() {
+  const { alphaMap } = useMemo(() => {
+    const size = 128;
+    const aCanvas = document.createElement("canvas");
+    aCanvas.width = size;
+    aCanvas.height = size;
+    const aCtx = aCanvas.getContext("2d");
+    if (aCtx) {
+      aCtx.fillStyle = "#000000";
+      aCtx.fillRect(0, 0, size, size);
+      aCtx.strokeStyle = "#ffffff";
+      aCtx.lineWidth = 14; 
+      aCtx.lineJoin = "miter";
+      aCtx.beginPath();
+      aCtx.moveTo(size/2, 0);
+      aCtx.lineTo(size, size/2);
+      aCtx.lineTo(size/2, size);
+      aCtx.lineTo(0, size/2);
+      aCtx.closePath();
+      aCtx.stroke();
+    }
+    const aTex = new THREE.CanvasTexture(aCanvas);
+    aTex.wrapS = THREE.RepeatWrapping;
+    aTex.wrapT = THREE.RepeatWrapping;
+    aTex.repeat.set(GLASS_W * 5, GLASS_H * 5); // Diamond density
+    aTex.anisotropy = 16;
+    return { alphaMap: aTex };
+  }, []);
 
   return (
-    <group position={[x, -0.15, PANEL_D / 2 + 0.025]}>
-      <mesh castShadow>
-        <cylinderGeometry args={[0.007, 0.007, 1.2, 16]} />
+    <>
+      <mesh position={[0, 0, PANEL_D * 0.25 + 0.001]} castShadow receiveShadow>
+        <planeGeometry args={[GLASS_W, GLASS_H]} />
+        <meshStandardMaterial 
+          color={FRAME_COLOR}
+          metalness={0.9}
+          roughness={0.3}
+          alphaMap={alphaMap}
+          transparent={true}
+          alphaTest={0.5}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      <mesh position={[0, 0, -(PANEL_D * 0.25 + 0.001)]} castShadow receiveShadow>
+        <planeGeometry args={[GLASS_W, GLASS_H]} />
+        <meshStandardMaterial 
+          color={FRAME_COLOR}
+          metalness={0.9}
+          roughness={0.3}
+          alphaMap={alphaMap}
+          transparent={true}
+          alphaTest={0.5}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+    </>
+  );
+}
+
+function DoorHandle({ side }: { side: "left" | "right" }) {
+  const handleInset = 0.18; // move handle slightly further from edge
+  const x = side === "left" ? GLASS_W / 2 - handleInset : -GLASS_W / 2 + handleInset;
+  const handleHeight = 1.4;
+  const handleRadius = 0.016;
+  const zPos = PANEL_D * 0.25 + 0.03;
+
+  return (
+    <group position={[x, 0, zPos]}>
+      <mesh castShadow receiveShadow>
+        <cylinderGeometry args={[handleRadius, handleRadius, handleHeight, 16]} />
         <FrameMat roughness={0.2} metalness={0.95} />
       </mesh>
-      <mesh position={[0, 0.45, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.005, 0.005, 0.03, 16]} />
+      <mesh position={[0, handleHeight / 2 - 0.05, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.015, 0.015, 0.03, 16]} />
         <FrameMat roughness={0.2} metalness={0.95} />
       </mesh>
-      <mesh position={[0, -0.45, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-        <cylinderGeometry args={[0.005, 0.005, 0.03, 16]} />
+      <mesh position={[0, -handleHeight / 2 + 0.05, -0.015]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+        <cylinderGeometry args={[0.015, 0.015, 0.03, 16]} />
         <FrameMat roughness={0.2} metalness={0.95} />
       </mesh>
     </group>
@@ -114,13 +181,14 @@ function DoorPanel({
   const frameThickness = 0.012;
 
   return (
-    <group position={[hingeX, 0, 0]}>
+    <group position={[hingeX, 0, -0.02]}>
       <group ref={pivotRef}>
         <group position={[panelCenterX, 0, 0]}>
           <mesh castShadow receiveShadow>
             <boxGeometry args={[GLASS_W, GLASS_H, PANEL_D * 0.5]} />
             <ClearGlassMat />
           </mesh>
+          <DoorLattice />
 
           <mesh position={[0, GLASS_H / 2 - frameThickness / 2, 0]} castShadow>
             <boxGeometry args={[GLASS_W, frameThickness, PANEL_D]} />
@@ -130,7 +198,13 @@ function DoorPanel({
             <boxGeometry args={[GLASS_W, frameThickness, PANEL_D]} />
             <FrameMat />
           </mesh>
+          {/* Outer vertical frame (hinge side) */}
           <mesh position={[side === "left" ? -GLASS_W / 2 + frameThickness / 2 : GLASS_W / 2 - frameThickness / 2, 0, 0]} castShadow>
+            <boxGeometry args={[frameThickness, GLASS_H - frameThickness * 2, PANEL_D]} />
+            <FrameMat />
+          </mesh>
+          {/* Inner vertical frame (center line where doors meet) */}
+          <mesh position={[side === "left" ? GLASS_W / 2 - frameThickness / 2 : -GLASS_W / 2 + frameThickness / 2, 0, 0]} castShadow>
             <boxGeometry args={[frameThickness, GLASS_H - frameThickness * 2, PANEL_D]} />
             <FrameMat />
           </mesh>
@@ -153,23 +227,33 @@ function DoorPanel({
   );
 }
 
-function DoorFrame() {
-  const totalW = GLASS_W * 2 + 0.01;
+function PhysicalDoorFrame() {
+  const { scene } = useGLTF(DOOR_MODEL_URL, false, false, extendGltfLoader);
+  
+  const cloned = useMemo(() => {
+    const obj = scene.clone(true);
+    applyDoorMaterials(obj);
+
+    // Fit to 3.36 x 5.04 so it works with the doorFraming math perfectly
+    obj.scale.set(1, 1, 1);
+    obj.position.set(0, 0, 0);
+    obj.rotation.set(0, 0, 0);
+    obj.updateMatrixWorld(true);
+
+    const box = new THREE.Box3().setFromObject(obj);
+    const size = box.getSize(new THREE.Vector3());
+    const center = box.getCenter(new THREE.Vector3());
+    
+    // DOOR_WIDTH = 3.36, DOOR_HEIGHT = 5.04
+    obj.scale.set(3.36 / size.x, 5.04 / size.y, 3.36 / size.x);
+    obj.position.set(-center.x * (3.36 / size.x), -center.y * (5.04 / size.y), -center.z);
+    
+    return obj;
+  }, [scene]);
 
   return (
     <group position={[0, 0, -0.02]}>
-      <mesh position={[0, GLASS_H / 2 + 0.01, 0]} castShadow>
-        <boxGeometry args={[totalW, 0.02, 0.04]} />
-        <FrameMat roughness={0.5} />
-      </mesh>
-      <mesh position={[-totalW / 2 - 0.01, 0, 0]} castShadow>
-        <boxGeometry args={[0.02, GLASS_H + 0.04, 0.04]} />
-        <FrameMat roughness={0.5} />
-      </mesh>
-      <mesh position={[totalW / 2 + 0.01, 0, 0]} castShadow>
-        <boxGeometry args={[0.02, GLASS_H + 0.04, 0.04]} />
-        <FrameMat roughness={0.5} />
-      </mesh>
+      <primitive object={cloned} />
     </group>
   );
 }
@@ -199,7 +283,7 @@ export default function GlassDoors({ progressRef, frameRef, animRef }: GlassDoor
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
-      <DoorFrame />
+      <PhysicalDoorFrame />
       <DoorPanel side="left" targetAngleRef={leftTargetRef} animRef={animRef} />
       <DoorPanel side="right" targetAngleRef={rightTargetRef} animRef={animRef} />
       <mesh position={[0, -GLASS_H / 2 - 0.026, 0.22]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

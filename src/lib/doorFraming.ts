@@ -49,9 +49,9 @@ export const DOOR_CAMERA = {
   dollyMaxMobile: 0.18,
   liftMax: 0.04,
   liftMaxMobile: 0,
-  padding: 1.028,
-  paddingLarge: 0.992,
-  paddingLandscape: 1.06,
+  padding: 1.015,
+  paddingLarge: 1.01,
+  paddingLandscape: 1.02,
   lookAtY: -0.05,
   /** Large desktop: taller door, bottom sits lower on screen. */
   lookAtYLarge: 0.115,
@@ -60,16 +60,16 @@ export const DOOR_CAMERA = {
   desktopLargeBreakpoint: 1024,
   /** Slight Z pop — door sits in front of the wall plane. */
   mobileGroupZ: 0.1,
-  mobileVerticalMargin: 0.04,
-  mobileVerticalMarginBottom: 0.04,
-  mobileHorizontalMargin: 0.058,
+  mobileVerticalMargin: 0.02,
+  mobileVerticalMarginBottom: 0.02,
+  mobileHorizontalMargin: 0.02,
   /** Height trim (~10%) — width trim (~9%). */
-  mobileHeightTrim: 0.875,
-  mobileWidthTrim: 0.865,
+  mobileHeightTrim: 0.95,
+  mobileWidthTrim: 0.95,
   /** Extra screen-height reduction on mobile (px). */
-  mobileHeightPxReduce: 228,
+  mobileHeightPxReduce: 40,
   /** Extra screen-width reduction on mobile (px). */
-  mobileWidthPxReduce: 52,
+  mobileWidthPxReduce: 40,
   /** Shift door down on screen (px). */
   mobileDoorDownPx: 30,
 } as const;
@@ -198,10 +198,37 @@ export function computeDoorCameraFraming(
   viewportWidth: number,
   viewportHeight: number,
 ): DoorCameraFraming {
-  if (viewportWidth < DOOR_MOBILE_BREAKPOINT) {
-    return computeMobileDoorFraming(aspect, viewportWidth, viewportHeight);
-  }
-  return computeDesktopDoorFraming(aspect, viewportWidth);
+  const isMobile = viewportWidth < DOOR_MOBILE_BREAKPOINT;
+  const fov = 36;
+  const vFovRad = (fov * Math.PI) / 180;
+  const halfV = vFovRad / 2;
+  const halfH = Math.atan(Math.tan(halfV) * aspect);
+
+  // Keep original distance so dolly zoom animation works perfectly
+  const distance = 3.35;
+  const viewHeight = 2 * distance * Math.tan(halfV);
+  const viewWidth = 2 * distance * Math.tan(halfH);
+
+  // Fill the view exactly, minus 20px gap on all sides
+  const marginPx = 20;
+  const targetViewWidth = viewWidth * (1 - (marginPx * 2) / viewportWidth);
+  const targetViewHeight = viewHeight * (1 - (marginPx * 2) / Math.max(1, viewportHeight));
+
+  // Actual bounds of the 3D door geometry
+  const DOOR_WIDTH = 3.36;
+  const DOOR_HEIGHT = 5.04;
+
+  const scaleX = targetViewWidth / DOOR_WIDTH;
+  const scaleY = targetViewHeight / DOOR_HEIGHT;
+
+  return {
+    distance,
+    lookAtY: 0,
+    fov,
+    scale: { x: scaleX, y: scaleY },
+    groupZ: 0.1,
+    isMobile,
+  };
 }
 
 export function framingToFrameState(framing: DoorCameraFraming): DoorFrameState {
@@ -234,8 +261,8 @@ export function getDoorScrollContentHeight() {
 }
 
 export function getDoorOpenDistance() {
-  if (typeof window === "undefined") return 800;
-  return window.innerHeight * 0.95;
+  if (typeof window === "undefined") return 500;
+  return window.innerHeight * 0.5; // Very small scroll distance to play entire video
 }
 
 export { DEFAULT_FRAME as DEFAULT_SCALE };

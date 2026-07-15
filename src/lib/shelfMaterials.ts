@@ -19,17 +19,17 @@ function createWoodMaterial(variant: number, interior = false): THREE.MeshPhysic
   const base = interior ? SHELF_WARM : SHELF_COLOR;
   return new THREE.MeshPhysicalMaterial({
     color: new THREE.Color(base),
-    roughness: interior ? 0.38 + jitter : 0.28 + jitter,
-    metalness: interior ? 0.08 : 0.14,
-    clearcoat: interior ? 0.55 : 0.82,
-    clearcoatRoughness: interior ? 0.22 : 0.14,
-    envMapIntensity: interior ? 0.48 : 0.62,
-    reflectivity: interior ? 0.28 : 0.42,
-    sheen: 0.22,
-    sheenRoughness: 0.36,
+    roughness: interior ? 0.25 + jitter : 0.15 + jitter,
+    metalness: interior ? 0.1 : 0.2,
+    clearcoat: 1.0,
+    clearcoatRoughness: 0.1,
+    envMapIntensity: interior ? 0.6 : 0.8,
+    reflectivity: 0.6,
+    sheen: 0.1,
+    sheenRoughness: 0.2,
     sheenColor: new THREE.Color(SHELF_IVORY),
-    emissive: new THREE.Color(interior ? "#E8C878" : "#F5E0A8"),
-    emissiveIntensity: interior ? 0.04 : 0.06,
+    emissive: new THREE.Color(interior ? "#3A2A18" : "#2A1F12"),
+    emissiveIntensity: interior ? 0.05 : 0.08,
   });
 }
 
@@ -196,6 +196,31 @@ export function applyLuxuryShelfMaterials(root: THREE.Object3D) {
 
     mesh.material = getWoodMaterial(hashName(name), false);
     mesh.renderOrder = 2;
+  });
+}
+
+export function applyDoorMaterials(root: THREE.Object3D) {
+  root.updateMatrixWorld(true);
+  root.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    if (!mesh.isMesh || !mesh.visible) return;
+
+    const name = mesh.name.toLowerCase();
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    if (/glass|pane/i.test(name)) {
+      mesh.material = glassMaterial;
+      mesh.renderOrder = 12;
+      mesh.castShadow = false;
+    } else if (/metal|brass|gold|trim|handle/i.test(name)) {
+      mesh.material = metalMaterial;
+      mesh.renderOrder = 4;
+    } else {
+      // Default to rich dark espresso wood for the doors
+      mesh.material = getWoodMaterial(hashName(name), false);
+      mesh.renderOrder = 2;
+    }
   });
 }
 

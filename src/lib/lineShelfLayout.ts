@@ -1,5 +1,5 @@
 /** Horizontal line length on screen (px) — exact per shelf */
-export const LINE_SHELF_WIDTH_PX = 150;
+export const LINE_SHELF_WIDTH_PX = 600;
 
 /** Distance from screen edge to each side column (px) */
 export const LINE_SHELF_SIDE_INSET_PX = 18;

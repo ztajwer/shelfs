@@ -40,7 +40,7 @@ export default function DoorSceneCanvas({
 }: DoorSceneCanvasProps) {
   return (
     <div
-      className="door-scene-canvas fixed inset-0 z-[8]"
+      className="door-scene-canvas fixed inset-0 z-[70]"
       style={{
         opacity,
         transition: "opacity 0.6s ease-out",

@@ -74,8 +74,8 @@ export default function BoutiqueParallaxBg({
             <video
               ref={videoRef}
               className="boutique-room__parallax-img boutique-room__parallax-video boutique-hero__bg-img"
-              src={mobileVideoSrc}
-              poster={mobilePosterSrc}
+              src={mobileVideoSrc || undefined}
+              poster={mobilePosterSrc || undefined}
               muted
               playsInline
               preload="metadata"
@@ -85,7 +85,7 @@ export default function BoutiqueParallaxBg({
             />
           ) : (
             <img
-              src={desktopSrc}
+              src={desktopSrc || undefined}
               alt=""
               className="boutique-room__parallax-img boutique-hero__bg-img"
               draggable={false}

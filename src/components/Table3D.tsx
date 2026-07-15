@@ -10,7 +10,7 @@ import { getDeviceProfile } from "@/lib/deviceProfile";
 
 function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: boolean }) {
   // Load the GLB model from public / media CDN
-  const { scene } = useGLTF(getModelUrl("table-3d.glb"), false, false, extendGltfLoader);
+  const { scene } = useGLTF(getModelUrl("Kiosk_Centre.glb"), false, false, extendGltfLoader);
   const groupRef = useRef<THREE.Group>(null);
 
   // Clone the scene so we can modify it safely without caching side-effects
@@ -36,7 +36,7 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     // Reset transformations
     clonedScene.scale.setScalar(1);
     clonedScene.position.set(0, 0, 0);
-    clonedScene.rotation.set(0, 0, 0);
+    clonedScene.rotation.set(0, Math.PI, 0); // Rotate 180 degrees so back side is in front
 
     // Compute bounding box based only on meshes to ignore helper locators, cameras, grids, etc.
     const box = new THREE.Box3();
@@ -61,7 +61,8 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     // Beautiful, natural scale - adjusted slightly down to prevent bottom cropping
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      const targetScale = 1.52 / maxDim; 
+      // Made it big size as requested, adjusted for perfect placement
+      const targetScale = 2.45 / maxDim; 
       clonedScene.scale.setScalar(targetScale);
     }
 
@@ -79,16 +80,8 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
         }
         if (mesh.material) {
           const mat = mesh.material as THREE.MeshStandardMaterial;
-          
-          // Enable transparency to support any alpha channel transparency (like the glass showcase top)
-          mat.transparent = true;
-          mat.opacity = 1.0;
-          mat.depthWrite = true;
-          
-          // Set premium PBR lighting and reflection intensities for a smooth, satin lacquer sheen
-          mat.roughness = 0.22;
-          mat.metalness = 0.3;
-          mat.envMapIntensity = 1.8; // gorgeous environmental reflections
+          // Only enhance environment reflections to show details clearly. No color/metalness overrides.
+          mat.envMapIntensity = 1.35; 
         }
       }
     });
@@ -137,7 +130,7 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           gl.setClearColor(0x000000, 0);
           gl.toneMapping = THREE.ACESFilmicToneMapping;
           gl.toneMappingExposure = 1.2; // Brighter luxury exposure
-          camera.lookAt(0, 0.24, 0); // Point slightly lower to prevent cropping at the top/bottom
+          camera.lookAt(0, 0.24, 0); // Reverted to original lookAt for perfect room alignment
         }}
       >
         <Environment preset="lobby" environmentIntensity={1.35} />
@@ -173,5 +166,5 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
 
 // Preload the large table model on the client side only
 if (typeof window !== "undefined") {
-  useGLTF.preload(getModelUrl("table-3d.glb"), false, false, extendGltfLoader);
+  useGLTF.preload(getModelUrl("Kiosk_Centre.glb"), false, false, extendGltfLoader);
 }

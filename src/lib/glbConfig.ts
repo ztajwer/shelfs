@@ -3,6 +3,7 @@ export const GLB_CDN_BASE =
   "https://media.githubusercontent.com/media/ztajwer/shelfs/main/public";
 
 export const SHOP_GLB_FILES = [
+  "door_col.glb",
   "shelf.glb",
   "pro1.glb",
   "pro2.glb",

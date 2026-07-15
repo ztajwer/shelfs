@@ -7,23 +7,23 @@ import {
 } from "@/lib/mobileBgAlign";
 import { getWorldSizeFromScreenPixels } from "@/lib/worldSizing";
 
-/** Primary shelf body — light golden champagne */
-export const SHELF_COLOR = "#F0DFB8";
+/** Primary shelf body — dark espresso wood */
+export const SHELF_COLOR = "#1E1510";
 
 /** Highlight / sheen tone */
-export const SHELF_IVORY = "#FFF6E8";
+export const SHELF_IVORY = "#FFF4E6";
 
 /** Recessed interior & shadow tone */
-export const SHELF_WARM = "#E5CF9A";
+export const SHELF_WARM = "#110C08";
 
-/** Rich gold trim & dividers */
-export const SHELF_GOLD = "#D4AF37";
+/** Sleek Italian brass trim & dividers */
+export const SHELF_GOLD = "#C5A059";
 
 /** Exact viewport margins (px) — mobile-first */
 export const SHELF_MARGIN_TOP_PX = 70;
 export const SHELF_MARGIN_BOTTOM_PX = 60;
 
-export type ShelfSide = "left" | "right";
+export type ShelfSide = "left" | "right" | "center";
 
 export interface ShelfModelSlot {
   side: ShelfSide;
@@ -32,16 +32,18 @@ export interface ShelfModelSlot {
 export const SHELF_PLACEMENT = {
   mobile: {
     left: { u: 0.142, screenPxScale: 1 },
+    center: { u: 0.5, screenPxScale: 1 },
     right: { u: 0.858, screenPxScale: 1 },
   },
   desktop: {
     left: { u: 0.098, screenPxScale: 1 },
+    center: { u: 0.5, screenPxScale: 1 },
     right: { u: 0.902, screenPxScale: 1 },
   },
 } as const;
 
-export const MOBILE_SHELF_MODELS: ShelfModelSlot[] = [{ side: "left" }, { side: "right" }];
-export const DESKTOP_SHELF_MODELS: ShelfModelSlot[] = [{ side: "left" }, { side: "right" }];
+export const MOBILE_SHELF_MODELS: ShelfModelSlot[] = [{ side: "left" }, { side: "center" }, { side: "right" }];
+export const DESKTOP_SHELF_MODELS: ShelfModelSlot[] = [{ side: "left" }, { side: "center" }, { side: "right" }];
 
 export const BOUTIQUE_SHELF_CAMERA = {
   mobile: {
@@ -56,7 +58,7 @@ export const BOUTIQUE_SHELF_CAMERA = {
   },
 } as const;
 
-const SHELF_DISPLAY_Z = { mobile: -0.64, desktop: -0.58 } as const;
+export const SHELF_DISPLAY_Z = { mobile: -0.64, desktop: -0.58 } as const;
 export const SHELF_FORWARD_YAW = 0;
 
 export interface ShelfModelLayoutItem {

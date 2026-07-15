@@ -20,7 +20,7 @@ function collectShopGlbUrls(): string[] {
   // Home page always renders shelf + table products via BoutiqueRoom.
   for (const file of SHOP_GLB_FILES) {
     if (file === "shelf.glb" && !SHOP_SHELVES_ENABLED) continue;
-    if (file.startsWith("pro")) urls.add(getModelUrl(file));
+    if (file.startsWith("pro") || file === "door_col.glb") urls.add(getModelUrl(file));
   }
   if (SHOP_LINE_SHELF_PRODUCTS_ENABLED) {
     for (const url of getLineShelfProductModelUrls()) urls.add(url);

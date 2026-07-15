@@ -42,9 +42,10 @@ export default function CinematicCamera({ progressRef, frameRef }: CinematicCame
     baseFovRef.current = framing.fov;
     isMobileRef.current = framing.isMobile;
     frameRef.current = framingToFrameState(framing);
-    dollyMaxRef.current = getDoorDollyMax(size.width);
-    liftMaxRef.current = getDoorLiftMax(size.width);
-    fovDollyRef.current = getDoorFovDollyZoom(size.width);
+    // Real doors open while the person stands still. Disable all zooming and lifting!
+    dollyMaxRef.current = 0;
+    liftMaxRef.current = 0;
+    fovDollyRef.current = 0;
 
     cam.fov = framing.fov;
     cam.position.set(0, framing.lookAtY, framing.distance);
