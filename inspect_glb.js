@@ -1,7 +1,3 @@
 const fs = require('fs');
-const buffer = fs.readFileSync('public/table-3d.glb');
-const jsonChunkLength = buffer.readUInt32LE(12);
-const jsonString = buffer.toString('utf8', 20, 20 + jsonChunkLength);
-const json = JSON.parse(jsonString);
-console.log(JSON.stringify(json.meshes, null, 2));
-console.log(JSON.stringify(json.materials, null, 2));
+const gltf = JSON.parse(fs.readFileSync('public/Kiosk_Centre.glb', 'utf8').replace(/[\s\S]*?JSON/, '{"asset"').split('BIN')[0].trim()); // Note: this is a hacky way to parse GLB JSON chunk, might not work if not properly aligned.
+console.log(JSON.stringify(gltf.materials, null, 2));

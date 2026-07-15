@@ -1371,7 +1371,6 @@ canvas {
 }
 
 /* Table — restored to original starting position and size, lifted 10px, enlarged 20px */
-.table-3d-wrapper,
 .table-products-overlay {
   position: absolute !important;
   bottom: 205px !important;
@@ -1383,11 +1382,25 @@ canvas {
   height: 295px !important;
 }
 
+.table-3d-wrapper {
+  position: absolute !important;
+  bottom: 110px !important;
+  top: auto !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 400px !important;
+}
+
 @media (min-width: 768px) {
-  .table-3d-wrapper,
   .table-products-overlay {
     max-width: 715px !important;
     height: 465px !important;
+  }
+  .table-3d-wrapper {
+    max-width: none !important;
+    height: 600px !important;
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useRef } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { useGLTF, Html, Environment, ContactShadows } from "@react-three/drei";
 import * as THREE from "three";
@@ -53,16 +53,16 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    // Center and sit flat on Y=0
-    clonedScene.position.x = -center.x;
+    // Shifted right (+0.6) to align the table's gap/cut with the center shelf
+    clonedScene.position.x = 0.6;
     clonedScene.position.y = -box.min.y;
-    clonedScene.position.z = -center.z;
+    clonedScene.position.z = -0.5;
 
-    // Beautiful, natural scale - adjusted slightly down to prevent bottom cropping
+    // Beautiful, natural scale
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      // Made it big size as requested, adjusted for perfect placement
-      const targetScale = 2.45 / maxDim; 
+      // Made slightly smaller as requested
+      const targetScale = 1.75 / maxDim; 
       clonedScene.scale.setScalar(targetScale);
     }
 
@@ -79,9 +79,27 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
           mesh.receiveShadow = true;
         }
         if (mesh.material) {
-          const mat = mesh.material as THREE.MeshStandardMaterial;
-          // Only enhance environment reflections to show details clearly. No color/metalness overrides.
+          const mat = (mesh.material as THREE.MeshStandardMaterial).clone();
+          mesh.material = mat;
+          
           mat.envMapIntensity = 1.35; 
+          
+          const isGlass = mat.transparent || mat.opacity < 1 || (mat.name && mat.name.toLowerCase().includes('glass'));
+          const isMetal = mat.metalness && mat.metalness > 0.5;
+          const isGold = mat.name && mat.name.toLowerCase().includes('gold');
+
+          if (isGlass) {
+            mat.transparent = true;
+            mat.opacity = 0.25; // Make glass more transparent so background image colors show through properly
+            mat.roughness = 0.05;
+            mat.metalness = 0.9;
+            mat.color.setHex(0xffffff); // Pure clear glass tint
+          } else if (isMetal || isGold || mat.color.getHex() > 0xaaaaaa) {
+            // Apply #DDBEA0 shades to the table frame/metal
+            mat.color.setHex(0xddbea0);
+            mat.metalness = Math.max(0.6, mat.metalness || 0);
+            mat.roughness = Math.min(0.3, mat.roughness || 1);
+          }
         }
       }
     });
@@ -108,7 +126,7 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
 
   return (
     <div
-      className="table-3d-wrapper absolute bottom-[130px] left-[45%] -translate-x-1/2 z-[60] w-[85%] max-w-[395px] h-[275px] md:max-w-[695px] md:h-[445px]"
+      className="table-3d-wrapper absolute bottom-[80px] left-[50%] -translate-x-1/2 z-[60] w-[100vw] h-[400px] md:h-[600px]"
       style={{
         opacity,
         pointerEvents: "none", // Disable all interactions to keep it static and perfect
@@ -149,13 +167,13 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           <TableModel textureMax={textureMax} isMobile={profile.mobile} />
         </Suspense>
 
-        {/* Render smooth contract shadow plane */}
+        {/* Render smooth contact shadow plane */}
         <ContactShadows
           position={[0, 0, 0]}
-          opacity={0.5}
-          scale={4.0}
-          blur={2.5}
-          far={1.5}
+          opacity={0.45}
+          scale={15.0}
+          blur={3.0}
+          far={2.5}
           color="#2C1F15"
           frames={1} // Only render contact shadows once to avoid rendering loop lag
         />
