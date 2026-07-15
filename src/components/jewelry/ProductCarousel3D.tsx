@@ -28,36 +28,40 @@ function getCarouselProductConfig(productId: ProductId, index: number): LineShel
     url: getModelUrl(product.modelFile),
     modelFile: product.modelFile,
     productId,
-    productSizePx: 145, // Bigger size: 145px
+    productSizePx: 130,
     displaySize: CAROUSEL_SCALES[productId] ?? 0.48,
     isTable: true,
   };
 }
 
 export default function ProductCarousel3D() {
-  const productIds: ProductId[] = ["pro1", "pro2", "pro3", "pro4", "pro5", "pro6"];
+  const productIds: ProductId[] = ["pro2", "pro3", "pro4"];
 
   return (
-    <div className="flex flex-row items-center justify-center w-full pointer-events-auto overflow-visible" style={{ gap: "0px", marginLeft: "0px", marginRight: "0px" }}>
+    <div className="flex flex-row items-center justify-center w-full pointer-events-auto overflow-visible" style={{ gap: "10px", marginLeft: "0px", marginRight: "0px" }}>
       {productIds.map((id, idx) => {
-        // Curve Logic for 6 products: 0, 1, 2, 3, 4, 5
-        const isEdge = idx === 0 || idx === 5;
-        const isMid = idx === 1 || idx === 4;
+        // Curve Logic for 3 products: 0, 1, 2
+        const isEdge = idx === 0 || idx === 2;
+        const isCenter = idx === 1;
         
-        // Push edges down significantly, mid items down slightly, center items are highest
-        const translateY = isEdge ? "60px" : isMid ? "25px" : "0px";
-        // Scale down edges to simulate perspective receding (like they are further back on a curve)
-        const scale = isEdge ? 0.75 : isMid ? 0.9 : 1.0;
-        // zIndex ensures center items overlap outer items naturally
-        const zIndex = isEdge ? 10 : isMid ? 20 : 30;
+        // Push edges UP (negative translateY) but everything is shifted DOWN by 5px as requested
+        // Original center was 0px, now 5px. Original edges were -15px, now -10px.
+        const translateY = isEdge ? "-10px" : "5px";
+        const translateX = "0px"; 
+        
+        // Maintain the big sizes that the user liked for the 3 main products
+        const scale = isEdge ? 1.15 : 1.35;
+        
+        // zIndex ensures center item is on top
+        const zIndex = isCenter ? 30 : 20;
 
         return (
           <div
             key={id}
             className="straight-product-item relative flex items-center justify-center transition-transform duration-300"
             style={{
-              ["--product-size" as any]: "var(--product-carousel-size, 80px)",
-              transform: `translateY(${translateY}) scale(${scale})`,
+              ["--product-size" as any]: "var(--product-carousel-size, 140px)",
+              transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
               zIndex
             }}
           >

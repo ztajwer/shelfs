@@ -1373,7 +1373,7 @@ canvas {
 /* Table — restored to original starting position and size, lifted 10px, enlarged 20px */
 .table-products-overlay {
   position: absolute !important;
-  bottom: 140px !important;
+  bottom: 320px !important;
   top: auto !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
