@@ -60,36 +60,21 @@ function getCustomProductConfig(
   };
 }
 
-function getTableProductConfig(
+function getCarouselProductConfig(
   productId: ProductId,
-  slotIndex: number,
-  tier: "upper" | "middle" | "lower"
+  slotIndex: number
 ): LineShelfProductConfig {
   const product = PRODUCTS[productId];
-  const tableScales: Record<ProductId, number> = {
-    pro1: 0.44, // Heritage Ring
-    pro2: 0.48, // Luna Bracelet
-    pro3: 0.48,
-    pro4: 0.52, // Cascade Necklace
-    pro5: 0.44,
-    pro6: 0.40,
-    proo: 0.45,
-  };
-
-  const sizePx = tier === "upper" ? 48 : tier === "middle" ? 55 : 62;
-  const scaleMult = tier === "upper" ? 0.78 : tier === "middle" ? 0.95 : 1.12;
-
   return {
     slotIndex,
     rowIndex: 0,
     side: "left",
-    tier,
+    tier: "middle",
     url: getModelUrl(product.modelFile),
     modelFile: product.modelFile,
     productId,
-    productSizePx: sizePx,
-    displaySize: (tableScales[productId] ?? 0.48) * scaleMult,
-    isTable: true,
+    productSizePx: 80,
+    displaySize: 0.48,
   };
 }
 
@@ -285,11 +270,12 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
         <Table3D opacity={1} />
 
         {/* Luxury 3D Product Carousel positioned directly on the display table surface */}
-        {/* <div
-          className="absolute bottom-[375px] md:bottom-[460px] left-[50%] -translate-x-1/2 z-[65] w-[92%] max-w-[460px] md:max-w-[720px] flex justify-center items-center pointer-events-none"
+        <div
+          className="table-products-overlay flex justify-center items-center z-[65]"
+          aria-label="Table products showcase"
         >
           <ProductCarousel3D />
-        </div> */}
+        </div>
 
       </BoutiqueParallaxBg>
 

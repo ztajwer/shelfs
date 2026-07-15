@@ -53,16 +53,16 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    // Shifted right (+0.6) to align the table's gap/cut with the center shelf
-    clonedScene.position.x = 0.6;
+    // Shifted slightly back to the right (4px -> -0.16) for absolute perfection
+    clonedScene.position.x = -0.16;
     clonedScene.position.y = -box.min.y;
     clonedScene.position.z = -0.5;
 
     // Beautiful, natural scale
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
-      // Made slightly smaller as requested
-      const targetScale = 1.75 / maxDim; 
+      // Scale increased to ensure the table is larger and has equal edge cuts
+      const targetScale = 1.65 / maxDim; 
       clonedScene.scale.setScalar(targetScale);
     }
 
@@ -94,11 +94,13 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
             mat.roughness = 0.05;
             mat.metalness = 0.9;
             mat.color.setHex(0xffffff); // Pure clear glass tint
+            mat.envMapIntensity = 2.0; // Enhance glass reflection
           } else if (isMetal || isGold || mat.color.getHex() > 0xaaaaaa) {
-            // Apply #DDBEA0 shades to the table frame/metal
-            mat.color.setHex(0xddbea0);
-            mat.metalness = Math.max(0.6, mat.metalness || 0);
-            mat.roughness = Math.min(0.3, mat.roughness || 1);
+            // Apply requested rich gold/bronze color (#CCAB89)
+            mat.color.setHex(0xccab89);
+            mat.metalness = Math.max(0.7, mat.metalness || 0);
+            mat.roughness = Math.min(0.2, mat.roughness || 1);
+            mat.envMapIntensity = 2.5; // Stronger lighting reflection for perfect look
           }
         }
       }
@@ -126,7 +128,7 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
 
   return (
     <div
-      className="table-3d-wrapper absolute bottom-[80px] left-[50%] -translate-x-1/2 z-[60] w-[100vw] h-[400px] md:h-[600px]"
+      className="table-3d-wrapper absolute bottom-[60px] left-[50%] -translate-x-1/2 z-[60] w-[100vw] h-[400px] md:h-[600px]"
       style={{
         opacity,
         pointerEvents: "none", // Disable all interactions to keep it static and perfect
@@ -142,6 +144,8 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           alpha: true,
           powerPreference: "high-performance",
           precision: "highp", // Max precision for perfect HD textures
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.15
         }}
         camera={{ position: [0, 1.8, 5.0], fov: 17.5 }}
         onCreated={({ gl, camera }) => {
@@ -151,9 +155,17 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           camera.lookAt(0, 0.24, 0); // Reverted to original lookAt for perfect room alignment
         }}
       >
-        <Environment preset="lobby" environmentIntensity={1.35} />
-        <ambientLight intensity={0.7} color="#FFFBF8" />
-        <pointLight position={[0, 1.2, 1.2]} intensity={0.8} color="#FAF5F2" distance={5} />
+        {/* Warm interior environment reflections to make the gold/metal look hyper-realistic */}
+        <Environment preset="apartment" environmentIntensity={1.4} />
+        {/* Luxurious Photorealistic Lighting Setup */}
+        {/* Soft overall room fill light matching the cream background */}
+        <ambientLight intensity={0.9} color="#F8F1E9" />
+        
+        {/* Main ceiling chandelier light (top center pointing down) to cast realistic highlights on the metal */}
+        <spotLight position={[0, 5, 0]} intensity={2.0} color="#FFF5E6" angle={0.8} penumbra={0.8} />
+        
+        {/* Soft front fill to bring out the details in the glass and metal */}
+        <pointLight position={[0, 1.5, 2.5]} intensity={0.8} color="#F8F1E9" distance={8} />
 
         <Suspense
           fallback={
@@ -167,14 +179,15 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           <TableModel textureMax={textureMax} isMobile={profile.mobile} />
         </Suspense>
 
-        {/* Render smooth contact shadow plane */}
+        {/* Render smooth contact shadow plane to ground it on the floor */}
         <ContactShadows
           position={[0, 0, 0]}
-          opacity={0.45}
+          opacity={0.80}
           scale={15.0}
-          blur={3.0}
-          far={2.5}
-          color="#2C1F15"
+          blur={2.2}
+          far={4.0}
+          resolution={1024}
+          color="#3D2817" // Warm dark brown shadow to blend naturally with the cream floor
           frames={1} // Only render contact shadows once to avoid rendering loop lag
         />
       </Canvas>

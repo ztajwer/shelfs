@@ -1373,18 +1373,19 @@ canvas {
 /* Table — restored to original starting position and size, lifted 10px, enlarged 20px */
 .table-products-overlay {
   position: absolute !important;
-  bottom: 205px !important;
+  bottom: 140px !important;
   top: auto !important;
-  left: 43% !important;
+  left: 50% !important;
   transform: translateX(-50%) !important;
-  width: 85% !important;
-  max-width: 415px !important;
-  height: 295px !important;
+  width: 100% !important;
+  max-width: none !important;
+  height: 200px !important;
+  pointer-events: none; /* Let clicks pass through empty areas */
 }
 
 .table-3d-wrapper {
   position: absolute !important;
-  bottom: 110px !important;
+  bottom: 85px !important;
   top: auto !important;
   left: 50% !important;
   transform: translateX(-50%) !important;

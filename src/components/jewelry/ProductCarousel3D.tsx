@@ -35,23 +35,38 @@ function getCarouselProductConfig(productId: ProductId, index: number): LineShel
 }
 
 export default function ProductCarousel3D() {
-  const productIds: ProductId[] = ["pro2", "pro3", "pro4"];
+  const productIds: ProductId[] = ["pro1", "pro2", "pro3", "pro4", "pro5", "pro6"];
 
   return (
     <div className="flex flex-row items-center justify-center w-full pointer-events-auto overflow-visible" style={{ gap: "0px", marginLeft: "0px", marginRight: "0px" }}>
-      {productIds.map((id, idx) => (
-        <div
-          key={id}
-          className="straight-product-item relative flex items-center justify-center"
-          style={{
-            ["--product-size" as any]: "var(--product-carousel-size)",
-          }}
-        >
-          {/* Circular Blurred Background */}
-          <div className="product-circle-bg absolute rounded-full bg-white/[0.04] backdrop-blur-md border border-white/10 shadow-[inset_0_0_12px_rgba(255,255,255,0.06),0_4px_24px_rgba(0,0,0,0.12)] pointer-events-none -z-10" />
-          <LineShelfProductMini config={getCarouselProductConfig(id, idx)} mountDelay={idx * 120} />
-        </div>
-      ))}
+      {productIds.map((id, idx) => {
+        // Curve Logic for 6 products: 0, 1, 2, 3, 4, 5
+        const isEdge = idx === 0 || idx === 5;
+        const isMid = idx === 1 || idx === 4;
+        
+        // Push edges down significantly, mid items down slightly, center items are highest
+        const translateY = isEdge ? "60px" : isMid ? "25px" : "0px";
+        // Scale down edges to simulate perspective receding (like they are further back on a curve)
+        const scale = isEdge ? 0.75 : isMid ? 0.9 : 1.0;
+        // zIndex ensures center items overlap outer items naturally
+        const zIndex = isEdge ? 10 : isMid ? 20 : 30;
+
+        return (
+          <div
+            key={id}
+            className="straight-product-item relative flex items-center justify-center transition-transform duration-300"
+            style={{
+              ["--product-size" as any]: "var(--product-carousel-size, 80px)",
+              transform: `translateY(${translateY}) scale(${scale})`,
+              zIndex
+            }}
+          >
+            {/* Circular Blurred Background */}
+            <div className="product-circle-bg absolute rounded-full bg-white/[0.04] backdrop-blur-md border border-white/10 shadow-[inset_0_0_12px_rgba(255,255,255,0.06),0_4px_24px_rgba(0,0,0,0.12)] pointer-events-none -z-10" />
+            <LineShelfProductMini config={getCarouselProductConfig(id, idx)} mountDelay={idx * 120} />
+          </div>
+        );
+      })}
     </div>
   );
 }
