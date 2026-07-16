@@ -44,13 +44,11 @@ function triggerGltfPreload(
 }
 
 function preloadAllShopGltfParallel() {
-  const urls = collectShopGlbUrls();
-  if (urls.length === 0) return;
-
-  urls.forEach((url) => {
-    warmHttpCache(url);
-    triggerGltfPreload(url);
-  });
+  // PERFORMANCE FIX: 
+  // Downloading and parsing 400MB+ of GLB models all at once completely freezes the 
+  // browser's main thread, causing the intro video to lag and the page to get stuck.
+  // We will let React Three Fiber lazy-load these models via <Suspense> when needed instead.
+  return;
 }
 
 function preloadImage(src: string) {
@@ -131,12 +129,8 @@ export function startShopModelLoads() {
 }
 
 export function prefetchAllProductBytes() {
-  const urls = collectShopGlbUrls();
-  if (urls.length === 0) return;
-  urls.forEach((url) => {
-    warmHttpCache(url);
-    triggerGltfPreload(url);
-  });
+  // PERFORMANCE FIX: Disabled to prevent browser freeze.
+  return;
 }
 
 export function bootShopModels() {
