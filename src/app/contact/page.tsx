@@ -124,7 +124,7 @@ export default function ContactPage() {
               Contact Us
             </h2>
             <p className="mt-3 text-sm text-[#6f5843]">
-              We'd love to hear from you! Send us a message and our team will get back to you soon.
+              We&apos;d love to hear from you! Send us a message and our team will get back to you soon.
             </p>
           </div>
 
