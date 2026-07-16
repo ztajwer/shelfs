@@ -54,16 +54,24 @@ export function useExperienceScroll(ready: boolean) {
   }, [ready, getOpenDistance, getShopRange]);
 
   useEffect(() => {
-    if (!ready || !prefersReducedMotion()) return;
+    if (!ready) return;
+    const isEntered = typeof window !== "undefined" && sessionStorage.getItem("maj_boutique_entered") === "true";
+    if (!isEntered && !prefersReducedMotion()) return;
+
     progressRef.current = 1;
     setDoorProgress(1);
     shopLatchedRef.current = true;
-    enteredAtScrollRef.current = getOpenDistance();
+    const openDist = getOpenDistance();
+    enteredAtScrollRef.current = openDist;
     setEntered(true);
     targetFocusRef.current = 0;
     smoothedFocusRef.current = 0;
     setFocusProgress(0);
-  }, [ready]);
+
+    if (isEntered && scrollRef.current) {
+      scrollRef.current.scrollTop = openDist;
+    }
+  }, [ready, getOpenDistance]);
 
 
   useEffect(() => {

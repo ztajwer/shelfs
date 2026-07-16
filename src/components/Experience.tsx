@@ -14,7 +14,7 @@ function ExperienceInner() {
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    sessionStorage.removeItem("maj_boutique_entered");
+    // Keep session storage to allow skipping intro when navigating back
   }, []);
 
   const [showCursorGlitter, setShowCursorGlitter] = useState(false);

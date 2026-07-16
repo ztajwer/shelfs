@@ -128,7 +128,7 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
 
   return (
     <div
-      className="table-3d-wrapper absolute bottom-[60px] left-[50%] -translate-x-1/2 z-[60] w-[100vw] h-[400px] md:h-[600px]"
+      className="table-3d-wrapper absolute bottom-[57px] left-[50%] -translate-x-1/2 z-[60] w-[100vw] h-[400px] md:h-[600px]"
       style={{
         opacity,
         pointerEvents: "none", // Disable all interactions to keep it static and perfect
