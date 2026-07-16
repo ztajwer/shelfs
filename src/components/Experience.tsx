@@ -9,6 +9,7 @@ import ShopExperience from "./jewelry/ShopExperience";
 import VideoIntro from "./VideoIntro";
 import { getDeviceProfile } from "@/lib/deviceProfile";
 import { useExperienceScroll } from "@/hooks/useExperienceScroll";
+import Footer from "./Footer";
 
 function ExperienceInner() {
   const [ready, setReady] = useState(false);
@@ -173,9 +174,9 @@ function ExperienceInner() {
           ref={scrollRef}
           className={`experience-scroll-layer shop-scroll-layer fixed inset-0 z-[45] overflow-x-hidden overflow-y-auto overscroll-none ${entered ? "shop-scroll-layer--passthrough" : ""}`}
           style={{ WebkitOverflowScrolling: "touch" }}
-          aria-hidden
         >
-          <div style={{ height: scrollHeight || "200vh", minHeight: scrollHeight || "200vh" }} />
+          <div aria-hidden style={{ height: scrollHeight || "200vh", minHeight: scrollHeight || "200vh" }} />
+          {entered && <Footer />}
         </div>
       )}
 
