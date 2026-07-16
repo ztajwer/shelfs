@@ -55,8 +55,7 @@ export function useExperienceScroll(ready: boolean) {
 
   useEffect(() => {
     if (!ready) return;
-    const isEntered = typeof window !== "undefined" && sessionStorage.getItem("maj_boutique_entered") === "true";
-    if (!isEntered && !prefersReducedMotion()) return;
+    if (!prefersReducedMotion()) return;
 
     progressRef.current = 1;
     setDoorProgress(1);
@@ -68,7 +67,7 @@ export function useExperienceScroll(ready: boolean) {
     smoothedFocusRef.current = 0;
     setFocusProgress(0);
 
-    if (isEntered && scrollRef.current) {
+    if (scrollRef.current) {
       scrollRef.current.scrollTop = openDist;
     }
   }, [ready, getOpenDistance]);
@@ -90,9 +89,6 @@ export function useExperienceScroll(ready: boolean) {
         enteredAtScrollRef.current = openDist;
         shopLatchedRef.current = true;
         setEntered(true);
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("maj_boutique_entered", "true");
-        }
       }
 
       // Once in the boutique, never scroll back into the door zone (prevents door UI / progress rewind).
@@ -255,9 +251,6 @@ export function useExperienceScroll(ready: boolean) {
     shopLatchedRef.current = true;
     enteredAtScrollRef.current = openDist;
     setEntered(true);
-    if (typeof window !== "undefined") {
-      sessionStorage.setItem("maj_boutique_entered", "true");
-    }
   }, [getOpenDistance]);
 
   return {

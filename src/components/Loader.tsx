@@ -29,12 +29,6 @@ export default function Loader({ onComplete }: LoaderProps) {
   );
 
   useEffect(() => {
-    if (typeof window !== "undefined" && sessionStorage.getItem("maj_boutique_entered") === "true") {
-      setVisible(false);
-      onComplete();
-      finishedRef.current = true;
-      return;
-    }
     bootImagePipeline();
   }, [onComplete]);
 
