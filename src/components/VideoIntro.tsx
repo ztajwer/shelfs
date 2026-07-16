@@ -61,7 +61,7 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
       <video
         ref={videoRef}
         src="/door_st.mp4"
-        className="h-full object-fill"
+        className="h-full object-cover"
         style={{ 
           width: "100%", 
           minWidth: "100%",

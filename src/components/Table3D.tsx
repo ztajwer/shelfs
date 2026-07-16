@@ -137,8 +137,9 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
       aria-label="3D Display Table Showcase"
     >
       <Canvas
+        className="w-full h-full pointer-events-none"
         shadows={!profile.mobile} // Disable shadow maps on mobile to boost performance and prevent crashes
-        dpr={[1, 2]} // Enforce HD rendering on high density screens
+        dpr={[1, 1.5]} // Enforce performance cap on high density screens
         gl={{
           antialias: true,
           alpha: true,

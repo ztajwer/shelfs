@@ -301,10 +301,9 @@ export default function BoutiqueShelfProducts({ visible }: BoutiqueShelfProducts
     <div className="boutique-shelf-products boutique-hero__shelves">
       <Canvas
         frameloop="demand"
-        shadows
-        dpr={[1, 2]}
         className="boutique-shelf-products__canvas"
-        style={{ pointerEvents: "none" }}
+        shadows={!isMobile}
+        dpr={[1, 1.5]}
         gl={{
           antialias: true,
           alpha: true,

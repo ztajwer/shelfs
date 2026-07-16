@@ -287,6 +287,7 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
         <Canvas
           eventSource={roomRef as any}
           className="w-full h-full"
+          dpr={[1, 1.5]}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
