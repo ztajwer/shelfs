@@ -23,17 +23,17 @@ function prefersReducedMotion() {
  * One scroll container for door + boutique: door uses scrollTop 0→openDist,
  * table zoom only after openDist + deadzone so door gesture never zooms the table.
  */
-export function useExperienceScroll(ready: boolean) {
+export function useExperienceScroll(ready: boolean, skipIntro = false) {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const progressRef = useRef(0);
+  const progressRef = useRef(skipIntro ? 1 : 0);
   const targetFocusRef = useRef(0);
   const smoothedFocusRef = useRef(0);
-  const [doorProgress, setDoorProgress] = useState(0);
-  const [entered, setEntered] = useState(false);
+  const [doorProgress, setDoorProgress] = useState(skipIntro ? 1 : 0);
+  const [entered, setEntered] = useState(skipIntro);
   const [focusProgress, setFocusProgress] = useState(0);
   const [scrollHeight, setScrollHeight] = useState(0);
   const enteredAtScrollRef = useRef<number | null>(null);
-  const shopLatchedRef = useRef(false);
+  const shopLatchedRef = useRef(skipIntro);
   const scrollTopRef = useRef(0);
   const openDistRef = useRef(0);
   const shopRangeRef = useRef(0);
@@ -51,7 +51,15 @@ export function useExperienceScroll(ready: boolean) {
     const openDist = getOpenDistance();
     const shopRange = getShopRange();
     setScrollHeight(getUnifiedExperienceScrollHeight(openDist, shopRange));
-  }, [ready, getOpenDistance, getShopRange]);
+    
+    if (skipIntro && scrollRef.current && !enteredAtScrollRef.current) {
+      enteredAtScrollRef.current = openDist;
+      const targetScroll = openDist + shopRange;
+      scrollRef.current.scrollTop = targetScroll;
+      scrollTopRef.current = targetScroll;
+      focusArmedRef.current = true;
+    }
+  }, [ready, getOpenDistance, getShopRange, skipIntro]);
 
   useEffect(() => {
     if (!ready) return;

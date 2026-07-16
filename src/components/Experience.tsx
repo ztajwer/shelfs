@@ -11,11 +11,16 @@ import { getDeviceProfile } from "@/lib/deviceProfile";
 import { useExperienceScroll } from "@/hooks/useExperienceScroll";
 import Footer from "./Footer";
 
+// Module-level variable persists during Next.js client-side navigation (e.g. back button)
+// but resets to false on a hard page refresh!
+let hasWatchedIntro = false;
+
 function ExperienceInner() {
-  const [ready, setReady] = useState(false);
+  const [skipIntro] = useState(hasWatchedIntro);
+  const [ready, setReady] = useState(skipIntro);
 
   useEffect(() => {
-    // Keep session storage to allow skipping intro when navigating back
+    // Session storage is no longer used; we use module-level state for perfect back-button behavior
   }, []);
 
   const [showCursorGlitter, setShowCursorGlitter] = useState(false);
@@ -29,26 +34,24 @@ function ExperienceInner() {
     scrollHeight,
     getOpenDistance,
     forceEnter,
-  } = useExperienceScroll(ready);
+  } = useExperienceScroll(ready, skipIntro);
 
   const [flashPhase, setFlashPhase] = useState<"none" | "start" | "in" | "out">("none");
 
   const handleVideoEnd = useCallback(() => {
     setFlashPhase("start");
     
-    // Start fade-in on next frame to ensure CSS transition fires
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         setFlashPhase("in");
       });
     });
 
-    // 1.2s for the light to completely blind the screen
     setTimeout(() => {
       forceEnter();
+      hasWatchedIntro = true; // Mark intro as watched for any future back navigation in this session
       setFlashPhase("out");
       
-      // 3s for the light to beautifully fade away revealing the shop
       setTimeout(() => {
         setFlashPhase("none");
       }, 3000);
@@ -140,7 +143,7 @@ function ExperienceInner() {
     <div className="relative h-full w-full bg-maj-cream">
       <ModelPreloader doorsReady={ready} />
       {!showCursorGlitter ? null : <CursorGlitterTrail />}
-      <Loader onComplete={handleLoadComplete} />
+      {!skipIntro && <Loader onComplete={handleLoadComplete} />}
 
       {ready && <ShopExperience visible={true} focusProgress={focusProgress} />}
 
