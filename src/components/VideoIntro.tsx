@@ -12,24 +12,13 @@ interface VideoIntroProps {
 
 export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: VideoIntroProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
   const [needsInteraction, setNeedsInteraction] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
 
-    audioRef.current = new Audio("/door-chime.mp3");
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.36;
-    
-    const playAudio = () => {
-      audioRef.current?.play().catch(() => {});
-    };
-
-    video.play().then(() => {
-      playAudio();
-    }).catch((err) => {
+    video.play().catch((err) => {
       if (err.name === "NotAllowedError") {
         setNeedsInteraction(true);
       } else {
@@ -45,10 +34,6 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
     };
 
     const onEnded = () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-      }
       if (onVideoEnd) onVideoEnd();
     };
 
@@ -58,9 +43,6 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
     return () => {
       video.removeEventListener("timeupdate", onTimeUpdate);
       video.removeEventListener("ended", onEnded);
-      if (audioRef.current) {
-        audioRef.current.pause();
-      }
     };
   }, [onVideoEnd, onProgress]);
 
@@ -68,9 +50,6 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
     setNeedsInteraction(false);
     if (videoRef.current) {
       videoRef.current.play().catch(console.error);
-    }
-    if (audioRef.current) {
-      audioRef.current.play().catch(console.error);
     }
   };
 
@@ -88,7 +67,7 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
           minWidth: "100%",
           maxWidth: "100%"
         }} 
-        muted={false}
+        muted={true}
         playsInline
         autoPlay
         preload="auto"
