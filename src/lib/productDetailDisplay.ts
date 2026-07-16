@@ -11,6 +11,7 @@ export const PRODUCT_DETAIL_SIZES: Record<
   pro4: { mobile: 0.54, desktop: 0.5 },
   pro5: { mobile: 0.52, desktop: 0.48 },
   pro6: { mobile: 0.58, desktop: 0.54 },
+  proo: { mobile: 0.58, desktop: 0.54 },
 };
 
 export function getProductDetailDisplaySize(product: Product, viewportWidth: number): number {
