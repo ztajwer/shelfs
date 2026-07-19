@@ -28,8 +28,8 @@ export function buildWhatsAppInquiryUrl(
   if (!isWhatsAppConfigured()) return null;
 
   let message = productTitle
-    ? `Hello, I would like to inquire about the ${productTitle} from MAJ Boutique.`
-    : "Hello, I would like to inquire about a piece from MAJ Boutique.";
+    ? `Hey Maj Boutique, I would like to inquire about the ${productTitle}.`
+    : "Hey Maj Boutique, I would like to make an inquiry.";
 
   if (customization) {
     message += `\n\nCustomized Options:\n- Metal: ${customization.body.toUpperCase()}\n- Stone/Accent: ${customization.stone.toUpperCase()}\n- Price: ${customization.price}`;
