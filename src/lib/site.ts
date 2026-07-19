@@ -15,8 +15,8 @@ export const siteConfig = {
   locale: "en_US",
   sameAs: [] as string[],
   /** Placeholder until client provides real number — shown on product detail pages. */
-  boutiquePhoneDisplay: "+92 300 123 4567",
-  boutiquePhoneWhatsApp: "923001234567",
+  boutiquePhoneDisplay: "+44 7452 880482",
+  boutiquePhoneWhatsApp: "447452880482",
   get url() {
     return process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
   },

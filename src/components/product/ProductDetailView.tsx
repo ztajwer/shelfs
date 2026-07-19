@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import type { Product } from "@/lib/products";
 import { getAllProducts } from "@/lib/products";
-import { prefetchProductGlb } from "@/lib/modelPreload";
+
 import { getProductDetailDisplaySize } from "@/lib/productDetailDisplay";
 import { getBoutiquePhoneDisplay } from "@/lib/whatsapp";
 
@@ -119,7 +119,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
   const others = getAllProducts().filter((item) => item.id !== product.id).slice(0, 3);
 
   useEffect(() => {
-    prefetchProductGlb(product.modelFile);
+    import("@/lib/modelPreload").then((m) => m.prefetchProductGlb(product.modelFile));
     const sync = () => setViewportWidth(window.innerWidth);
     sync();
     window.addEventListener("resize", sync);

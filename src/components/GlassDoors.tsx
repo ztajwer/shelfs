@@ -63,6 +63,7 @@ function ClearGlassMat() {
 
 function DoorLattice() {
   const { alphaMap } = useMemo(() => {
+    if (typeof document === 'undefined') return { alphaMap: null };
     const size = 128;
     const aCanvas = document.createElement("canvas");
     aCanvas.width = size;

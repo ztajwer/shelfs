@@ -6,7 +6,7 @@ const TEXTURE_COLOR_KEYS = [
   "aoMap",
 ] as const;
 
-type JewelryMaterialKind = "gem" | "gold" | "silver" | "enamel" | "pearl" | "default";
+type JewelryMaterialKind = "gem" | "gold" | "silver" | "enamel" | "pearl" | "combined" | "default";
 
 function meshLabel(mesh: THREE.Mesh, mat?: THREE.MeshStandardMaterial): string {
   return `${mesh.name} ${mesh.parent?.name ?? ""} ${mat?.name ?? ""}`.toLowerCase();
@@ -37,6 +37,9 @@ function classifyJewelryMaterial(mesh: THREE.Mesh, mat: THREE.MeshStandardMateri
   }
 
   if (productId === "pro2") {
+    if (mat.name === "pbr_material") {
+      return "combined";
+    }
     if (/dimond/i.test(name)) {
       return "gem";
     }
@@ -149,7 +152,7 @@ function tuneJewelryMaterial(
   const hasMap = mat.userData.hasMap !== undefined ? Boolean(mat.userData.hasMap) : Boolean(mat.map);
   let tuned = mat;
 
-  if (kind === "gem" || kind === "pearl" || kind === "enamel") {
+  if (kind === "gem" || kind === "pearl" || kind === "enamel" || kind === "combined") {
     tuned = asPhysicalMaterial(mat);
     // Carry over userData so classification is preserved
     tuned.userData = { ...mat.userData };
@@ -180,6 +183,159 @@ function tuneJewelryMaterial(
     if (mat.userData.originalAttenuationColor && tuned.attenuationColor) {
       tuned.attenuationColor.copy(mat.userData.originalAttenuationColor);
     }
+  }
+
+  if (kind === "combined") {
+    // 1. Initialize custom shader uniforms on the material if not already done
+    if (!tuned.userData.customUniforms) {
+      tuned.userData.customUniforms = {
+        uCustomBodyColor: { value: new THREE.Color("#D4AF37") },
+        uCustomStoneColor: { value: new THREE.Color("#FFFFFF") },
+        uHasCustomBody: { value: 0.0 },
+        uHasCustomStone: { value: 0.0 },
+      };
+
+      const originalOnBeforeCompile = tuned.onBeforeCompile;
+      tuned.onBeforeCompile = (shader, renderer) => {
+        if (originalOnBeforeCompile) {
+          originalOnBeforeCompile.call(tuned, shader, renderer);
+        }
+
+        // Copy custom uniforms into the shader uniforms
+        shader.uniforms.uCustomBodyColor = tuned.userData.customUniforms.uCustomBodyColor;
+        shader.uniforms.uCustomStoneColor = tuned.userData.customUniforms.uCustomStoneColor;
+        shader.uniforms.uHasCustomBody = tuned.userData.customUniforms.uHasCustomBody;
+        shader.uniforms.uHasCustomStone = tuned.userData.customUniforms.uHasCustomStone;
+
+        // Inject uniform declarations
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "void main() {",
+          `
+          uniform vec3 uCustomBodyColor;
+          uniform vec3 uCustomStoneColor;
+          uniform float uHasCustomBody;
+          uniform float uHasCustomStone;
+          void main() {
+          `
+        );
+
+        // Inject custom color blending logic after map_fragment
+        shader.fragmentShader = shader.fragmentShader.replace(
+          "#include <map_fragment>",
+          `
+          #include <map_fragment>
+          
+          #ifdef USE_TRANSMISSIONMAP
+            float tVal = texture2D( transmissionMap, vTransmissionMapUv ).r;
+          #else
+            float tVal = 0.0;
+          #endif
+
+          if (uHasCustomBody > 0.5 && tVal < 0.1) {
+            // Metallic/opaque part: convert base color texture to grayscale and multiply by custom metal color
+            float gray = dot(diffuseColor.rgb, vec3(0.299, 0.587, 0.114));
+            diffuseColor.rgb = vec3(gray) * uCustomBodyColor;
+          }
+
+          if (uHasCustomStone > 0.5 && tVal >= 0.1) {
+            // Gemstone/transmissive part: override base color texture with custom stone color
+            diffuseColor.rgb = uCustomStoneColor;
+          }
+          `
+        );
+      };
+    }
+
+    // 2. Set default parameters for combined material (high-quality base values)
+    tuned.metalness = 1.0;
+    tuned.roughness = 0.12;
+    tuned.envMapIntensity = 2.4;
+
+    if (tuned instanceof THREE.MeshPhysicalMaterial) {
+      tuned.transmission = 1.0;
+      tuned.thickness = 1.2;
+      tuned.ior = 2.417;
+      tuned.clearcoat = 1.0;
+      tuned.clearcoatRoughness = 0.02;
+      tuned.attenuationColor = new THREE.Color("#ffffff");
+      tuned.attenuationDistance = 2.0;
+    }
+
+    // 3. Apply customizations via uniforms and scalar properties
+    const u = tuned.userData.customUniforms;
+    if (customization?.body) {
+      u.uHasCustomBody.value = 1.0;
+      const body = customization.body;
+      tuned.metalness = body === "silver" ? 0.98 : body === "bronze" ? 0.90 : 0.95;
+      tuned.roughness = body === "silver" ? 0.05 : body === "bronze" ? 0.18 : 0.08;
+      tuned.envMapIntensity = body === "silver" ? 2.0 : body === "bronze" ? 1.6 : 2.4;
+
+      if (body === "silver") {
+        u.uCustomBodyColor.value.set("#E8E8EC");
+      } else if (body === "bronze") {
+        u.uCustomBodyColor.value.set("#A87A54");
+      } else {
+        u.uCustomBodyColor.value.set("#D4AF37");
+      }
+    } else {
+      u.uHasCustomBody.value = 0.0;
+    }
+
+    if (customization?.stone) {
+      u.uHasCustomStone.value = 1.0;
+      const stone = customization.stone;
+      
+      if (tuned instanceof THREE.MeshPhysicalMaterial) {
+        if (stone === "diamond") {
+          tuned.ior = 2.417;
+          tuned.transmission = 1.0;
+          tuned.thickness = 1.2;
+          tuned.attenuationColor.set("#FFFFFF");
+          tuned.attenuationDistance = 2.0;
+          u.uCustomStoneColor.value.set("#FFFFFF");
+        } else if (stone === "ruby") {
+          tuned.ior = 1.76;
+          tuned.transmission = 0.88;
+          tuned.thickness = 0.8;
+          tuned.attenuationColor.set("#E0115F");
+          tuned.attenuationDistance = 0.3;
+          u.uCustomStoneColor.value.set("#E0115F");
+        } else if (stone === "emerald") {
+          tuned.ior = 1.57;
+          tuned.transmission = 0.85;
+          tuned.thickness = 0.7;
+          tuned.attenuationColor.set("#097969");
+          tuned.attenuationDistance = 0.35;
+          u.uCustomStoneColor.value.set("#097969");
+        } else if (stone === "sapphire") {
+          tuned.ior = 1.76;
+          tuned.transmission = 0.88;
+          tuned.thickness = 0.8;
+          tuned.attenuationColor.set("#0F52BA");
+          tuned.attenuationDistance = 0.3;
+          u.uCustomStoneColor.value.set("#0F52BA");
+        } else if (stone === "amethyst") {
+          tuned.ior = 1.54;
+          tuned.transmission = 0.92;
+          tuned.thickness = 0.9;
+          tuned.attenuationColor.set("#9966CC");
+          tuned.attenuationDistance = 0.4;
+          u.uCustomStoneColor.value.set("#9966CC");
+        }
+      } else {
+        if (stone === "diamond") u.uCustomStoneColor.value.set("#FFFFFF");
+        else if (stone === "ruby") u.uCustomStoneColor.value.set("#E0115F");
+        else if (stone === "emerald") u.uCustomStoneColor.value.set("#097969");
+        else if (stone === "sapphire") u.uCustomStoneColor.value.set("#0F52BA");
+        else if (stone === "amethyst") u.uCustomStoneColor.value.set("#9966CC");
+      }
+    } else {
+      u.uHasCustomStone.value = 0.0;
+    }
+
+    tuned.side = THREE.FrontSide;
+    tuned.needsUpdate = true;
+    return tuned;
   }
 
   // Check if customization is active for this material kind
@@ -292,15 +448,15 @@ function tuneJewelryMaterial(
       case "gem":
         tuned.metalness = 0.0;
         tuned.roughness = Math.min(tuned.roughness, 0.06);
-        tuned.envMapIntensity = 1.75;
+        tuned.envMapIntensity = 2.4;
         if (tuned instanceof THREE.MeshPhysicalMaterial) {
-          tuned.transmission = Math.max(tuned.transmission ?? 0, 0.18);
-          tuned.thickness = tuned.thickness || 0.42;
-          tuned.ior = tuned.ior || 2.35;
+          tuned.transmission = Math.max(tuned.transmission ?? 0, 1.0);
+          tuned.thickness = tuned.thickness || 1.2;
+          tuned.ior = tuned.ior || 2.417;
           tuned.clearcoat = 1.0;
           tuned.clearcoatRoughness = 0.015;
           tuned.attenuationColor = tuned.attenuationColor ?? new THREE.Color("#ffffff");
-          tuned.attenuationDistance = tuned.attenuationDistance || 2.4;
+          tuned.attenuationDistance = tuned.attenuationDistance || 2.0;
         }
         if (!hasMap) {
           tuned.emissive.copy(tuned.color).multiplyScalar(0.04);

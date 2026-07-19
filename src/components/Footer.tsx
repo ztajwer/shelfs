@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Cormorant_Garamond } from "next/font/google";
+import { siteConfig } from "@/lib/site";
 
 const cormorant = Cormorant_Garamond({
   subsets: ["latin"],
@@ -10,8 +11,8 @@ const cormorant = Cormorant_Garamond({
 });
 
 export default function Footer() {
-  const whatsappNumber = "+12345678910";
-  const whatsappLink = `https://wa.me/${whatsappNumber.replace(/[^0-9]/g, "")}`;
+  const whatsappNumber = siteConfig.boutiquePhoneDisplay;
+  const whatsappLink = `https://wa.me/${siteConfig.boutiquePhoneWhatsApp}`;
 
   return (
     <footer className="w-full bg-[#FAF6F1] border-t border-[#D4AF37]/20 pt-20 pb-10 px-8 relative z-50 pointer-events-auto">

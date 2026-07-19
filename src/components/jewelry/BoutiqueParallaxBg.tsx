@@ -42,7 +42,9 @@ export default function BoutiqueParallaxBg({
 
   useLuxuryParallax(roomRef, bgMediaRef, null, {
     ...CINEMATIC_PARALLAX,
-    enabled: active && focusProgress < 0.06,
+    bgScale: 1.04, // Significantly reduced from default 1.16
+    bgRangePx: 20, // Reduced translation to prevent edge reveal with lower scale
+    enabled: active,
     motionOut: motionRef,
   });
 

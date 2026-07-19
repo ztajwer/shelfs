@@ -1,8 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useMemo, useRef } from "react";
-import { Canvas } from "@react-three/fiber";
-import { useGLTF, Html, Environment, ContactShadows } from "@react-three/drei";
+import { useGLTF, Html, Environment, ContactShadows, View, PerspectiveCamera } from "@react-three/drei";
 import * as THREE from "three";
 import { getModelUrl, extendGltfLoader } from "@/lib/modelAssets";
 import { optimizeModelForGpu } from "@/lib/gpuModelOptimize";
@@ -53,18 +52,21 @@ function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: bo
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
 
-    // Shifted slightly back to the right (4px -> -0.16) for absolute perfection
-    clonedScene.position.x = -0.16;
-    clonedScene.position.y = -box.min.y;
-    clonedScene.position.z = -0.5;
-
     // Beautiful, natural scale
+    let targetScale = 1;
     const maxDim = Math.max(size.x, size.y, size.z);
     if (maxDim > 0) {
       // Scale increased to ensure the table is larger and has equal edge cuts
-      const targetScale = 1.65 / maxDim; 
+      targetScale = 1.65 / maxDim; 
       clonedScene.scale.setScalar(targetScale);
     }
+
+    // Perfectly center horizontally between the background pillars
+    clonedScene.position.x = -center.x * targetScale;
+    // Ground exactly on the floor plane so it isn't floating
+    clonedScene.position.y = -box.min.y * targetScale;
+    // Shift slightly back
+    clonedScene.position.z = -0.5;
 
     // Dynamic texture downscaling and model optimization for mobile GPU performance
     optimizeModelForGpu(clonedScene, textureMax);
@@ -136,26 +138,13 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
       }}
       aria-label="3D Display Table Showcase"
     >
-      <Canvas
-        className="w-full h-full pointer-events-none"
-        shadows={!profile.mobile} // Disable shadow maps on mobile to boost performance and prevent crashes
-        dpr={[1, 1.5]} // Enforce performance cap on high density screens
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance",
-          precision: "highp", // Max precision for perfect HD textures
-          toneMapping: THREE.ACESFilmicToneMapping,
-          toneMappingExposure: 1.15
-        }}
-        camera={{ position: [0, 1.8, 5.0], fov: 17.5 }}
-        onCreated={({ gl, camera }) => {
-          gl.setClearColor(0x000000, 0);
-          gl.toneMapping = THREE.ACESFilmicToneMapping;
-          gl.toneMappingExposure = 1.2; // Brighter luxury exposure
-          camera.lookAt(0, 0.24, 0); // Reverted to original lookAt for perfect room alignment
-        }}
-      >
+      <View className="w-full h-full pointer-events-none">
+        <PerspectiveCamera 
+          makeDefault 
+          position={[0, 1.8, 5.0]} 
+          fov={17.5} 
+          onUpdate={(c) => c.lookAt(0, 0.24, 0)} 
+        />
         {/* Warm interior environment reflections to make the gold/metal look hyper-realistic */}
         <Environment preset="apartment" environmentIntensity={1.4} />
         {/* Luxurious Photorealistic Lighting Setup */}
@@ -191,7 +180,7 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
           color="#3D2817" // Warm dark brown shadow to blend naturally with the cream floor
           frames={1} // Only render contact shadows once to avoid rendering loop lag
         />
-      </Canvas>
+      </View>
     </div>
   );
 }

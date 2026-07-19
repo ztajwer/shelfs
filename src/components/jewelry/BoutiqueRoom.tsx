@@ -193,7 +193,7 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
         >
           <div className="pointer-events-auto" style={{ position: "absolute", top: "75%", left: "50%", transform: "translate(-50%, -93%)" }}>
             <div style={{ position: "relative", zIndex: 20 }}>
-              <LineShelfProductMini config={getCustomProductConfig("pro3", 1, "left")} mountDelay={240} />
+              <LineShelfProductMini config={getCustomProductConfig("pro6", 1, "left")} mountDelay={240} />
             </div>
             {/* Display Pedestal Box */}
             <div 
@@ -245,7 +245,7 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
         >
           <div className="pointer-events-auto" style={{ position: "absolute", top: "75%", left: "50%", transform: "translate(-50%, -93%)" }}>
             <div style={{ position: "relative", zIndex: 20 }}>
-              <LineShelfProductMini config={getCustomProductConfig("pro2", 2, "right")} mountDelay={360} />
+              <LineShelfProductMini config={getCustomProductConfig("pro3", 2, "right")} mountDelay={360} />
             </div>
             {/* Display Pedestal Box */}
             <div 

@@ -321,7 +321,7 @@ html.detail-page-scroll body {
   display: block;
   user-select: none;
   pointer-events: none;
-  object-fit: contain;
+  object-fit: fill;
   object-position: center center;
 }
 
@@ -1396,12 +1396,14 @@ canvas {
 
 @media (min-width: 768px) {
   .table-products-overlay {
-    max-width: 715px !important;
-    height: 465px !important;
+    bottom: 21.76vh !important;
+    max-width: 37.24vw !important;
+    height: 43.05vh !important;
   }
   .table-3d-wrapper {
+    bottom: 0vh !important;
     max-width: none !important;
-    height: 600px !important;
+    height: 55.55vh !important;
   }
 }
 

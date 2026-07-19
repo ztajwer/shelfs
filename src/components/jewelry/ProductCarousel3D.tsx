@@ -35,7 +35,7 @@ function getCarouselProductConfig(productId: ProductId, index: number): LineShel
 }
 
 export default function ProductCarousel3D() {
-  const productIds: ProductId[] = ["pro2", "pro3", "pro4"];
+  const productIds: ProductId[] = ["pro5", "pro4", "pro2"];
 
   return (
     <div className="flex flex-row items-center justify-center w-full pointer-events-auto overflow-visible" style={{ gap: "10px", marginLeft: "0px", marginRight: "0px" }}>

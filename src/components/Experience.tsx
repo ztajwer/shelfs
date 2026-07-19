@@ -71,73 +71,43 @@ function ExperienceInner() {
 
 
   useEffect(() => {
-    if (!ready || !entered) return;
-    const el = scrollRef.current;
-    if (!el) return;
-
-    let touchStartY = 0;
-    let touchStartScroll = 0;
-    let tracking = false;
-
-    const isShelfProductTarget = (target: EventTarget | null) => {
-      if (!(target instanceof Element)) return false;
-      return Boolean(target.closest(".line-shelf__product-interactive"));
-    };
-
-    const onTouchStart = (e: TouchEvent) => {
-      if (isShelfProductTarget(e.target)) return;
-      touchStartY = e.touches[0]?.clientY ?? 0;
-      touchStartScroll = el.scrollTop;
-      tracking = true;
-    };
-
-    const onTouchMove = (e: TouchEvent) => {
-      if (!tracking || isShelfProductTarget(e.target)) return;
-      const clientY = e.touches[0]?.clientY ?? touchStartY;
-      const dy = touchStartY - clientY;
-      const maxScroll = el.scrollHeight - el.clientHeight;
-      const openDist = getOpenDistance();
-      el.scrollTop = Math.min(maxScroll, Math.max(openDist, touchStartScroll + dy));
-      if (Math.abs(dy) > 2) e.preventDefault();
-    };
-
-    const onTouchEnd = () => {
-      tracking = false;
-    };
-
-    document.addEventListener("touchstart", onTouchStart, { passive: true });
-    document.addEventListener("touchmove", onTouchMove, { passive: false });
-    document.addEventListener("touchend", onTouchEnd, { passive: true });
-    document.addEventListener("touchcancel", onTouchEnd, { passive: true });
-
-    return () => {
-      document.removeEventListener("touchstart", onTouchStart);
-      document.removeEventListener("touchmove", onTouchMove);
-      document.removeEventListener("touchend", onTouchEnd);
-      document.removeEventListener("touchcancel", onTouchEnd);
-    };
-  }, [ready, entered, scrollRef, getOpenDistance]);
-
-  useEffect(() => {
     if (!ready) return;
     const el = scrollRef.current;
     if (!el) return;
 
-    const onWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 1) return;
-      e.preventDefault();
-      const maxScroll = el.scrollHeight - el.clientHeight;
-      const openDist = getOpenDistance();
-      const minScroll = entered ? openDist : 0;
-      el.scrollTop = Math.min(maxScroll, Math.max(minScroll, el.scrollTop + e.deltaY));
-    };
+    // Use Lenis for 100% buttery smooth scrolling on the main page and footer
+    // We bind eventsTarget to window because the scroll layer has pointer-events: none when entered
+    const Lenis = require("lenis").default || require("lenis");
+    const lenis = new Lenis({
+      wrapper: el,
+      content: el.firstElementChild as HTMLElement,
+      eventsTarget: window,
+      lerp: 0.08,
+      wheelMultiplier: 1,
+      smoothWheel: true,
+      smoothTouch: true, // This captures touch on the window and scrolls smoothly, bypassing the pointer-events: none limitation!
+      touchMultiplier: 2.0,
+      syncTouch: false,
+    });
 
-    window.addEventListener("wheel", onWheel, { passive: false });
+    let rafId: number;
+    const raf = (time: number) => {
+      // Clamp scroll to prevent scrolling back up into the door zone once entered
+      const openDist = getOpenDistance();
+      if (entered && lenis.targetScroll < openDist) {
+        lenis.scrollTo(openDist, { immediate: true });
+      }
+      
+      lenis.raf(time);
+      rafId = requestAnimationFrame(raf);
+    };
+    rafId = requestAnimationFrame(raf);
 
     return () => {
-      window.removeEventListener("wheel", onWheel);
+      cancelAnimationFrame(rafId);
+      lenis.destroy();
     };
-  }, [ready, entered, scrollRef, getOpenDistance]);
+  }, [ready, entered, getOpenDistance, scrollRef]);
 
   return (
     <div className="relative h-full w-full bg-maj-cream">

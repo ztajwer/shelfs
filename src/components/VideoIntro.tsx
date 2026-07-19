@@ -14,6 +14,16 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
   const videoRef = useRef<HTMLVideoElement>(null);
   const [needsInteraction, setNeedsInteraction] = useState(false);
 
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const sync = () => setIsMobile(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -53,14 +63,17 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
     }
   };
 
+  const videoSrc = isMobile ? "/door_st.mp4" : "/fuvid.mp4";
+
   return (
     <div 
       className="fixed inset-0 w-full h-full z-[60] bg-black overflow-hidden flex items-center justify-center"
       style={{ opacity, pointerEvents: needsInteraction ? "auto" : "none" }}
     >
       <video
+        key={videoSrc} // Force video reload when source changes
         ref={videoRef}
-        src="/door_st.mp4"
+        src={videoSrc}
         className="h-full object-cover"
         style={{ 
           width: "100%", 
