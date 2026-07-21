@@ -166,7 +166,7 @@ function ShelfInteriorLights({ root }: { root: THREE.Object3D }) {
 }
 
 function PhysicalShelfModel({ layout }: { layout: ShelfModelLayoutItem }) {
-  const { scene } = useGLTF(SHELF_MODEL_URL, true, false, extendGltfLoader);
+  const { scene } = useGLTF(SHELF_MODEL_URL, false, false, extendGltfLoader);
   const { camera, invalidate } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   const alignedRef = useRef(false);
@@ -298,17 +298,15 @@ export default function BoutiqueShelfProducts({ visible }: BoutiqueShelfProducts
   if (!SHOP_SHELVES_ENABLED || !visible) return null;
 
   return (
-    <div className="boutique-shelf-products boutique-hero__shelves">
+    <div ref={containerRef} className="boutique-shelf-products boutique-hero__shelves">
       <Canvas
+        fallback={<div className="w-full h-full flex items-center justify-center text-white/50 text-xs">WebGL Disabled</div>}
         frameloop="demand"
-        className="boutique-shelf-products__canvas"
         shadows={!isMobile}
+        eventSource={containerRef as any}
+        className="w-full h-full boutique-shelf-products__canvas"
         dpr={[1, 1.5]}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance",
-        }}
+        gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0);
           gl.toneMapping = THREE.ACESFilmicToneMapping;

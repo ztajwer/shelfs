@@ -71,7 +71,7 @@ const ShelfProductGlb = memo(function ShelfProductGlb({
   customization?: CustomizationSettings;
   isSelected: boolean;
 }) {
-  const { scene: productRoot } = useGLTF(config.url, true, false, extendGltfLoader);
+  const { scene: productRoot } = useGLTF(config.url, false, false, extendGltfLoader);
   const scene = useMemo(() => {
     const cloned = productRoot.clone(true);
     

@@ -277,6 +277,12 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
         style={{ zIndex: 60 }}
       >
         <Canvas
+          fallback={
+            <div className="flex flex-col items-center justify-center w-full h-full bg-black/90 text-maj-gold/80 p-8 text-center border border-maj-gold/20">
+              <p className="text-sm uppercase tracking-widest mb-2 font-sans">Hardware Acceleration Required</p>
+              <p className="text-xs opacity-70">Your device or browser is currently blocking WebGL 3D rendering. Please enable hardware acceleration to view the boutique.</p>
+            </div>
+          }
           eventSource={roomRef as any}
           className="w-full h-full"
           dpr={dpr}

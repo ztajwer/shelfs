@@ -40,7 +40,7 @@ function triggerGltfPreload(
 ) {
   if (gltfTriggered.has(url)) return;
   gltfTriggered.add(url);
-  useGLTF.preload(url, true, false, extendGltfLoader);
+  useGLTF.preload(url, false, false, extendGltfLoader);
 }
 
 function preloadAllShopGltfParallel() {

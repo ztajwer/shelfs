@@ -25,62 +25,26 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
   }, []);
 
   useEffect(() => {
-    let endedFired = false;
-    const triggerEnd = () => {
-      if (endedFired) return;
-      endedFired = true;
-      if (onVideoEnd) onVideoEnd();
-    };
-
-    if (isMobile) {
-      const timer = setTimeout(triggerEnd, 5000); // 5s for image intro
-      return () => clearTimeout(timer);
-    }
+    if (isMobile) return;
 
     const video = videoRef.current;
     if (!video) return;
 
     video.play().catch((err) => {
-      if (err.name === "NotAllowedError") {
-        setNeedsInteraction(true);
-      } else {
-        console.warn("Video play warning, proceeding:", err);
-        triggerEnd();
-      }
+      console.warn("Video play warning:", err);
     });
 
     const onTimeUpdate = () => {
-      if (video.duration) {
-        const progress = video.currentTime / video.duration;
-        if (onProgress) onProgress(progress);
+      if (video.duration && onProgress) {
+        onProgress(video.currentTime / video.duration);
       }
     };
 
-    const onEnded = () => {
-      triggerEnd();
-    };
-
-    const onError = () => {
-      console.warn("Video load error, proceeding to boutique.");
-      triggerEnd();
-    };
-
     video.addEventListener("timeupdate", onTimeUpdate);
-    video.addEventListener("ended", onEnded);
-    video.addEventListener("error", onError);
-
-    // Fail-safe safety timer (4.5s max) so intro never gets stuck
-    const safetyTimer = setTimeout(() => {
-      triggerEnd();
-    }, 4500);
-
     return () => {
-      clearTimeout(safetyTimer);
       video.removeEventListener("timeupdate", onTimeUpdate);
-      video.removeEventListener("ended", onEnded);
-      video.removeEventListener("error", onError);
     };
-  }, [isMobile, onVideoEnd, onProgress]);
+  }, [isMobile, onProgress]);
 
   const handleStartInteraction = () => {
     setNeedsInteraction(false);
@@ -100,7 +64,7 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
         <img
           src={imgSrc}
           alt="Doors"
-          className="h-full object-cover"
+          className="h-full object-contain"
           style={{ 
             width: "100%", 
             minWidth: "100%",
@@ -112,7 +76,7 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
           key={videoSrc} // Force video reload when source changes
           ref={videoRef}
           src={videoSrc}
-          className="h-full object-cover"
+          className="h-full object-contain"
           style={{ 
             width: "100%", 
             minWidth: "100%",
@@ -121,19 +85,20 @@ export default function VideoIntro({ opacity = 1, onVideoEnd, onProgress }: Vide
           muted={true}
           playsInline
           autoPlay
+          loop={true}
           preload="auto"
         />
       )}
-      {needsInteraction && (
-        <div 
-          className="absolute inset-0 z-[70] flex items-center justify-center bg-black/40 backdrop-blur-sm cursor-pointer"
-          onClick={handleStartInteraction}
-        >
-          <div className="font-sans text-[11px] uppercase tracking-[0.3em] text-maj-gold border border-maj-gold/50 px-8 py-4 bg-black/60 hover:bg-maj-gold hover:text-black transition-colors duration-300">
-            Enter Boutique
-          </div>
+      
+      {/* Always show the Enter overlay since it now waits indefinitely for interaction */}
+      <div 
+        className="absolute inset-0 z-[70] flex items-center justify-center bg-black/20 hover:bg-black/40 backdrop-blur-[2px] cursor-pointer transition-all duration-500"
+        onClick={handleStartInteraction}
+      >
+        <div className="font-sans text-[11px] uppercase tracking-[0.3em] text-maj-gold border border-maj-gold/50 px-8 py-4 bg-black/60 hover:bg-maj-gold hover:text-black transition-colors duration-300">
+          Enter Boutique
         </div>
-      )}
+      </div>
     </div>
   );
 }

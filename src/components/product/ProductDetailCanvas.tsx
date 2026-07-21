@@ -59,7 +59,7 @@ function DetailProductModelGlb({
   customization?: CustomizationSettings;
   productId?: string;
 }) {
-  const { scene: gltfScene } = useGLTF(url, true, false, extendGltfLoader);
+  const { scene: gltfScene } = useGLTF(url, false, false, extendGltfLoader);
   const scene = useMemo(() => {
     const cloned = gltfScene.clone(true);
     
@@ -284,13 +284,10 @@ export default function ProductDetailCanvas({
         }
       >
         <Canvas
-          className="touch-pan-y"
-          dpr={[1, 1.75]}
-          gl={{
-            antialias: true,
-            alpha: true,
-            powerPreference: "high-performance",
-          }}
+          fallback={<div className="w-full h-full flex items-center justify-center text-maj-gold/50 text-xs bg-black">3D Viewer requires WebGL</div>}
+          className="w-full h-full touch-pan-y"
+          dpr={[1, 2]}
+          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           camera={{ position: [0, 0.08, 2.25], fov: 28, near: 0.01, far: 100 }}
           onCreated={({ gl }) => {
             applyJewelryRendererSettings(gl, 1.12);

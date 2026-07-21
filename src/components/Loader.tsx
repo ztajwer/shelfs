@@ -45,26 +45,26 @@ export default function Loader({ onComplete }: LoaderProps) {
   }, [onComplete]);
 
   useEffect(() => {
-    const startedAt = performance.now();
+    const startedAt = Date.now();
     const duration = loaderDurationMs.current;
     const progressWindow = Math.max(400, duration - FADE_DURATION_MS);
-    let raf = 0;
+    let interval: ReturnType<typeof setInterval>;
 
-    const tick = (now: number) => {
+    const tick = () => {
+      const now = Date.now();
       const elapsed = now - startedAt;
-      const t = Math.min(1, elapsed / progressWindow);
+      const t = Math.min(1, Math.max(0, elapsed / progressWindow));
       const eased = t * t * (3 - 2 * t);
       setDisplayProgress(Math.max(1, eased * 100));
 
       if (elapsed >= duration) {
+        clearInterval(interval);
         finish();
-        return;
       }
-      raf = requestAnimationFrame(tick);
     };
 
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
+    interval = setInterval(tick, 16);
+    return () => clearInterval(interval);
   }, [finish]);
 
   if (!visible) return null;
@@ -97,22 +97,18 @@ export default function Loader({ onComplete }: LoaderProps) {
             <div className="relative">
               <div className="absolute -inset-10 rounded-full bg-maj-gold/14 blur-3xl sm:-inset-12" />
               <div className="loader-logo-size relative">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/logo_outline.png"
                   alt=""
-                  fill
-                  priority
-                  sizes="(max-width: 640px) 80vw, (max-width: 768px) 48vw, 360px"
-                  className="loader-logo-outline object-contain object-center"
+                  className="loader-logo-outline absolute inset-0 w-full h-full object-contain object-center"
                   aria-hidden
                 />
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/wh_logo-removebg-preview.png"
                   alt="MAJ Boutique"
-                  fill
-                  priority
-                  sizes="(max-width: 640px) 72vw, (max-width: 768px) 48vw, 320px"
-                  className="loader-logo-front relative z-10 object-contain object-center drop-shadow-[0_8px_28px_rgba(212,175,55,0.28)]"
+                  className="loader-logo-front absolute inset-0 z-10 w-full h-full object-contain object-center drop-shadow-[0_8px_28px_rgba(212,175,55,0.28)]"
                 />
               </div>
             </div>

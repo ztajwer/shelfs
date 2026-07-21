@@ -175,7 +175,7 @@ function SingleShowcaseProduct({
   positionX: number;
   positionZ: number;
 }) {
-  const { scene: rawScene } = useGLTF(getModelUrl(config.modelFile), true, false, extendGltfLoader);
+  const { scene: rawScene } = useGLTF(getModelUrl(config.modelFile), false, false, extendGltfLoader);
   const router = useRouter();
   const { customizations } = useCustomization();
   const customization = customizations[config.productId];
@@ -306,7 +306,7 @@ function ShowcaseProductsGroup({
 
 function TableModel({ textureMax, isMobile }: { textureMax: number; isMobile: boolean }) {
   // Load the GLB model from public / media CDN
-  const { scene } = useGLTF(getModelUrl("Kiosk_Centre.glb"), true, false, extendGltfLoader);
+  const { scene } = useGLTF(getModelUrl("Kiosk_Centre.glb"), false, false, extendGltfLoader);
   const groupRef = useRef<THREE.Group>(null);
   const [tableTransform, setTableTransform] = useState<{
     position: [number, number, number];
@@ -458,9 +458,9 @@ export default function Table3D({ opacity = 1 }: Table3DProps) {
   // Safe preloading inside useEffect after module hydration
   useEffect(() => {
     if (typeof window !== "undefined") {
-      useGLTF.preload(getModelUrl("Kiosk_Centre.glb"), true, false, extendGltfLoader);
+      useGLTF.preload(getModelUrl("Kiosk_Centre.glb"), false, false, extendGltfLoader);
       SHOWCASE_PRODUCTS.forEach((p) => {
-        useGLTF.preload(getModelUrl(p.modelFile), true, false, extendGltfLoader);
+        useGLTF.preload(getModelUrl(p.modelFile), false, false, extendGltfLoader);
       });
     }
   }, []);
