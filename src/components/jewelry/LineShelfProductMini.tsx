@@ -39,19 +39,7 @@ class CanvasErrorBoundary extends Component<{ children: ReactNode; fallback: Rea
   }
 }
 
-if (typeof window !== "undefined") {
-  for (const file of SHOP_GLB_FILES) {
-    if (file.startsWith("pro")) {
-      useGLTF.preload(getModelUrl(file), false, false, extendGltfLoader);
-    }
-  }
-}
 
-if (SHOP_LINE_SHELF_PRODUCTS_ENABLED) {
-  for (const url of getLineShelfProductModelUrls()) {
-    useGLTF.preload(url, false, false, extendGltfLoader);
-  }
-}
 
 const DRAG_THRESHOLD_PX = 12;
 
@@ -83,7 +71,7 @@ const ShelfProductGlb = memo(function ShelfProductGlb({
   customization?: CustomizationSettings;
   isSelected: boolean;
 }) {
-  const { scene: productRoot } = useGLTF(config.url, false, false, extendGltfLoader);
+  const { scene: productRoot } = useGLTF(config.url, true, false, extendGltfLoader);
   const scene = useMemo(() => {
     const cloned = productRoot.clone(true);
     

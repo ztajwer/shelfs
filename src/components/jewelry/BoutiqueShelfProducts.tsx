@@ -19,7 +19,7 @@ const MOBILE_MAX_WIDTH = 767;
 const SHELF_MODEL_URL = getModelUrl("shelf.glb");
 
 if (SHOP_SHELVES_ENABLED) {
-  useGLTF.preload(SHELF_MODEL_URL, false, false, extendGltfLoader);
+  useGLTF.preload(SHELF_MODEL_URL, true, false, extendGltfLoader);
 }
 
 function fitShelfToSize(root: THREE.Object3D, targetSpan: number) {
@@ -166,7 +166,7 @@ function ShelfInteriorLights({ root }: { root: THREE.Object3D }) {
 }
 
 function PhysicalShelfModel({ layout }: { layout: ShelfModelLayoutItem }) {
-  const { scene } = useGLTF(SHELF_MODEL_URL, false, false, extendGltfLoader);
+  const { scene } = useGLTF(SHELF_MODEL_URL, true, false, extendGltfLoader);
   const { camera, invalidate } = useThree();
   const groupRef = useRef<THREE.Group>(null);
   const alignedRef = useRef(false);

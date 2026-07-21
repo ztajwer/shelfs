@@ -59,7 +59,7 @@ function DetailProductModelGlb({
   customization?: CustomizationSettings;
   productId?: string;
 }) {
-  const { scene: gltfScene } = useGLTF(url, false, false, extendGltfLoader);
+  const { scene: gltfScene } = useGLTF(url, true, false, extendGltfLoader);
   const scene = useMemo(() => {
     const cloned = gltfScene.clone(true);
     

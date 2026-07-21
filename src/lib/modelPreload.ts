@@ -10,7 +10,7 @@ let imagePipelineStarted = false;
 let modelPipelineScheduled = false;
 let shopStarted = false;
 
-const SHOP_IMAGES = ["/imagemob.png", "/image.png"] as const;
+const SHOP_IMAGES = ["/main_mob_bg.png", "/image.png"] as const;
 const DOOR_IMAGES = ["/door_sm.png", "/door_bg.png"] as const;
 const LOADER_IMAGES = ["/bg.png", "/logo_outline.png", "/wh_logo-removebg-preview.png"] as const;
 
@@ -40,7 +40,7 @@ function triggerGltfPreload(
 ) {
   if (gltfTriggered.has(url)) return;
   gltfTriggered.add(url);
-  useGLTF.preload(url, false, false, extendGltfLoader);
+  useGLTF.preload(url, true, false, extendGltfLoader);
 }
 
 function preloadAllShopGltfParallel() {

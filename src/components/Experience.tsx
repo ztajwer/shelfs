@@ -39,23 +39,18 @@ function ExperienceInner() {
   const [flashPhase, setFlashPhase] = useState<"none" | "start" | "in" | "out">("none");
 
   const handleVideoEnd = useCallback(() => {
+    forceEnter();
+    hasWatchedIntro = true; // Mark intro as watched for any future back navigation in this session
     setFlashPhase("start");
-    
     requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        setFlashPhase("in");
-      });
+      setFlashPhase("in");
     });
-
     setTimeout(() => {
-      forceEnter();
-      hasWatchedIntro = true; // Mark intro as watched for any future back navigation in this session
       setFlashPhase("out");
-      
       setTimeout(() => {
         setFlashPhase("none");
-      }, 3000);
-    }, 1200);
+      }, 800);
+    }, 300);
   }, [forceEnter]);
 
   const handleLoadComplete = useCallback(() => {

@@ -1370,10 +1370,10 @@ canvas {
   border-width: 0;
 }
 
-/* Table — restored to original starting position and size, lifted 10px, enlarged 20px */
+/* Table — products overlay positioned inside the glass display case */
 .table-products-overlay {
   position: absolute !important;
-  bottom: 317px !important;
+  bottom: 175px !important;
   top: auto !important;
   left: 50% !important;
   transform: translateX(-50%) !important;
@@ -1396,9 +1396,9 @@ canvas {
 
 @media (min-width: 768px) {
   .table-products-overlay {
-    bottom: 21.76vh !important;
+    bottom: 13.5vh !important;
     max-width: 37.24vw !important;
-    height: 43.05vh !important;
+    height: 38vh !important;
   }
   .table-3d-wrapper {
     bottom: 0vh !important;

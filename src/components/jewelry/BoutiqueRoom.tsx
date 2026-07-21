@@ -6,7 +6,6 @@ import { createBoutiqueParallaxMotion } from "@/lib/boutiqueParallaxMotion";
 import BoutiqueParallaxBg from "./BoutiqueParallaxBg";
 import Table3D from "../Table3D";
 import LineShelfProductMini from "./LineShelfProductMini";
-import ProductCarousel3D from "./ProductCarousel3D";
 import { PRODUCTS, type ProductId } from "@/lib/products";
 import { getModelUrl } from "@/lib/modelAssets";
 import {
@@ -14,7 +13,7 @@ import {
   type LineShelfProductConfig,
 } from "@/lib/lineShelfProductLayout";
 import { Canvas } from "@react-three/fiber";
-import { View } from "@react-three/drei";
+import { View, PerformanceMonitor } from "@react-three/drei";
 import { applyJewelryRendererSettings } from "@/lib/productModelUtils";
 
 interface BoutiqueRoomProps {
@@ -24,7 +23,7 @@ interface BoutiqueRoomProps {
 
 const BOUTIQUE_IMAGE = "/image.png";
 const BOUTIQUE_VIDEO_MOBILE = "";
-const BOUTIQUE_IMAGE_MOBILE_POSTER = "/imagemob.png";
+const BOUTIQUE_IMAGE_MOBILE_POSTER = "/main_mob_bg.png";
 
 // Custom premium scales for realistic real-world jewelry sizing on display shelves
 const PRODUCT_SHELF_SCALES: Record<ProductId, number> = {
@@ -82,6 +81,7 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
   const roomRef = useRef<HTMLDivElement>(null);
   const motionRef = useRef(createBoutiqueParallaxMotion());
   const [mounted, setMounted] = useState(false);
+  const [dpr, setDpr] = useState(1.5);
 
   useEffect(() => {
     setMounted(true);
@@ -266,16 +266,8 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
           </div>
         </div>
 
-        {/* 3D Display Table — inside parallax so it moves with the background */}
+        {/* 3D Display Table Showcase with 6 enclosed jewellery products */}
         <Table3D opacity={1} />
-
-        {/* Luxury 3D Product Carousel positioned directly on the display table surface */}
-        <div
-          className="table-products-overlay flex justify-center items-center z-[65]"
-          aria-label="Table products showcase"
-        >
-          <ProductCarousel3D />
-        </div>
 
       </BoutiqueParallaxBg>
 
@@ -287,13 +279,14 @@ export default function BoutiqueRoom({ visible, focusProgress = 0 }: BoutiqueRoo
         <Canvas
           eventSource={roomRef as any}
           className="w-full h-full"
-          dpr={[1, 1.5]}
+          dpr={dpr}
           gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
             gl.setClearColor(0x000000, 0);
             applyJewelryRendererSettings(gl, 1.15);
           }}
         >
+          <PerformanceMonitor onIncline={() => setDpr(1.5)} onDecline={() => setDpr(1)} />
           <View.Port />
         </Canvas>
       </div>

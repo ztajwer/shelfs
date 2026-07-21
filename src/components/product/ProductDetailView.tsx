@@ -132,7 +132,7 @@ export default function ProductDetailView({ product }: ProductDetailViewProps) {
     <div className="product-detail-immersive relative z-[60] w-full min-h-[100dvh] text-maj-brown">
       <div className="pointer-events-none fixed inset-0 -z-10">
         <Image
-          src={viewportWidth < 768 ? "/imagemob.png" : "/image.png"}
+          src={viewportWidth < 768 ? "/main_mob_bg.png" : "/image.png"}
           alt=""
           fill
           priority

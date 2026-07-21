@@ -38,35 +38,46 @@ export default function ProductCarousel3D() {
   const productIds: ProductId[] = ["pro5", "pro4", "pro2"];
 
   return (
-    <div className="flex flex-row items-center justify-center w-full pointer-events-auto overflow-visible" style={{ gap: "10px", marginLeft: "0px", marginRight: "0px" }}>
+    <div
+      className="flex flex-row items-center justify-center w-full pointer-events-auto overflow-visible"
+      style={{ gap: "24px" }}
+    >
       {productIds.map((id, idx) => {
-        // Curve Logic for 3 products: 0, 1, 2
-        const isEdge = idx === 0 || idx === 2;
+        const isLeft = idx === 0;
         const isCenter = idx === 1;
-        
-        // Push edges UP (negative translateY) but everything is shifted DOWN by 5px as requested
-        // Original center was 0px, now 5px. Original edges were -15px, now -10px.
-        const translateY = isEdge ? "-10px" : "5px";
-        const translateX = "0px"; 
-        
-        // Maintain the big sizes that the user liked for the 3 main products
-        const scale = isEdge ? 1.15 : 1.35;
-        
-        // zIndex ensures center item is on top
+        const isRight = idx === 2;
+
+        // Curved Arc Layout matching circular 3D glass showcase
+        // Center item sits down front-and-center inside the glass bed
+        // Left & Right items curve outward and back along the round glass rim
+        const translateY = isCenter ? "12px" : "-10px";
+        const translateX = isLeft ? "-22px" : isRight ? "22px" : "0px";
+        const rotateDeg = isLeft ? "-7deg" : isRight ? "7deg" : "0deg";
+        const scale = isCenter ? 1.28 : 1.06;
         const zIndex = isCenter ? 30 : 20;
 
         return (
           <div
             key={id}
-            className="straight-product-item relative flex items-center justify-center transition-transform duration-300"
+            className="straight-product-item relative flex flex-col items-center justify-center transition-transform duration-300"
             style={{
-              ["--product-size" as any]: "var(--product-carousel-size, 140px)",
-              transform: `translate(${translateX}, ${translateY}) scale(${scale})`,
-              zIndex
+              ["--product-size" as any]: "var(--product-carousel-size, 130px)",
+              transform: `translate(${translateX}, ${translateY}) rotate(${rotateDeg}) scale(${scale})`,
+              zIndex,
             }}
           >
-            {/* Circular Blurred Background */}
-            <div className="product-circle-bg absolute rounded-full bg-white/[0.04] backdrop-blur-md border border-white/10 shadow-[inset_0_0_12px_rgba(255,255,255,0.06),0_4px_24px_rgba(0,0,0,0.12)] pointer-events-none -z-10" />
+            {/* Elegant inner glass display pad & shadow resting inside the showcase bed */}
+            <div
+              className="product-table-pedestal absolute pointer-events-none -z-10 rounded-full transition-opacity duration-300"
+              style={{
+                bottom: "4px",
+                width: "56px",
+                height: "14px",
+                background: "radial-gradient(ellipse at center, rgba(212, 175, 55, 0.3) 0%, rgba(160, 120, 70, 0.15) 55%, transparent 85%)",
+                boxShadow: "0 6px 14px rgba(0,0,0,0.22), inset 0 1px 3px rgba(255,255,255,0.35)",
+                border: "1px solid rgba(212, 175, 55, 0.3)",
+              }}
+            />
             <LineShelfProductMini config={getCarouselProductConfig(id, idx)} mountDelay={idx * 120} />
           </div>
         );

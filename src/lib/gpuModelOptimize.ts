@@ -35,7 +35,6 @@ function downscaleTextureIfNeeded(texture: THREE.Texture, maxSize: number) {
   }
 }
 
-/** Reduce GPU memory for large GLB textures and disable shadow flags. */
 export function optimizeModelForGpu(root: THREE.Object3D, maxTextureSize = 1024) {
   root.traverse((child) => {
     const mesh = child as THREE.Mesh;
@@ -45,18 +44,8 @@ export function optimizeModelForGpu(root: THREE.Object3D, maxTextureSize = 1024)
     mesh.receiveShadow = false;
     mesh.frustumCulled = true;
 
-    if (!mesh.material) return;
-
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    mats.forEach((mat) => {
-      if (!(mat instanceof THREE.MeshStandardMaterial || mat instanceof THREE.MeshPhysicalMaterial)) {
-        return;
-      }
-
-      for (const key of TEXTURE_KEYS) {
-        const tex = mat[key];
-        if (tex) downscaleTextureIfNeeded(tex, maxTextureSize);
-      }
-    });
+    // We no longer manually downscale textures here using Canvas API as it 
+    // synchronously blocks the main thread for several seconds on huge assets.
+    // Textures should be optimized via Draco/WEBP beforehand.
   });
 }

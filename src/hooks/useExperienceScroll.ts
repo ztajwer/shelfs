@@ -103,20 +103,7 @@ export function useExperienceScroll(ready: boolean, skipIntro = false) {
       if (shopLatchedRef.current && st < openDist) {
         el.scrollTop = openDist;
         st = openDist;
-        // #region agent log
-        fetch("http://127.0.0.1:7647/ingest/287705b7-8654-4083-8fd8-eca8e5fb1f44", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "44e59c" },
-          body: JSON.stringify({
-            sessionId: "44e59c",
-            location: "useExperienceScroll.ts:clamp",
-            message: "scroll clamped at shop floor",
-            data: { scrollTop: st, openDist, runId: "door-shop-v9" },
-            timestamp: Date.now(),
-            hypothesisId: "H14-scroll-floor",
-          }),
-        }).catch(() => {});
-        // #endregion
+
       }
 
       const dp = shopLatchedRef.current ? 1 : Math.min(1, Math.max(0, st / openDist));
@@ -134,50 +121,7 @@ export function useExperienceScroll(ready: boolean, skipIntro = false) {
           ? Math.max(getShopFocusStartPx(openDist), enterAnchor + shopRange * SHOP_FOCUS_AFTER_ENTER_PX)
           : getShopFocusStartPx(openDist);
 
-      // #region agent log
-      const enteredNow = shopLatchedRef.current;
-      if (enteredNow !== prevEnteredRef.current) {
-        prevEnteredRef.current = enteredNow;
-        fetch("http://127.0.0.1:7647/ingest/287705b7-8654-4083-8fd8-eca8e5fb1f44", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "44e59c" },
-          body: JSON.stringify({
-            sessionId: "44e59c",
-            location: "useExperienceScroll.ts:entered",
-            message: "entered changed",
-            data: { entered: enteredNow, scrollTop: st, runId: "door-shop-v9" },
-            timestamp: Date.now(),
-            hypothesisId: "H14-scroll-floor",
-          }),
-        }).catch(() => {});
-      }
-      if (
-        shopLatchedRef.current &&
-        Math.abs(st - lastLoggedScrollRef.current) > 24
-      ) {
-        lastLoggedScrollRef.current = st;
-        fetch("http://127.0.0.1:7647/ingest/287705b7-8654-4083-8fd8-eca8e5fb1f44", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "44e59c" },
-          body: JSON.stringify({
-            sessionId: "44e59c",
-            location: "useExperienceScroll.ts:scroll",
-            message: "shop scroll",
-            data: {
-              scrollTop: st,
-              openDist,
-              doorProgress: dp,
-              shopLatched: shopLatchedRef.current,
-              effectiveFocusStart: effectiveFocusStartRef.current,
-              focusArmed: focusArmedRef.current,
-              runId: "door-shop-v9",
-            },
-            timestamp: Date.now(),
-            hypothesisId: "H14-scroll-floor",
-          }),
-        }).catch(() => {});
-      }
-      // #endregion
+
     };
 
     update();
@@ -217,28 +161,7 @@ export function useExperienceScroll(ready: boolean, skipIntro = false) {
       smoothedFocusRef.current = Math.abs(eased - next) < 0.0004 ? eased : next;
       setFocusProgress(smoothedFocusRef.current);
 
-      // #region agent log
-      if (focusRaw > 0.05) {
-        fetch("http://127.0.0.1:7647/ingest/287705b7-8654-4083-8fd8-eca8e5fb1f44", {
-          method: "POST",
-          headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "44e59c" },
-          body: JSON.stringify({
-            sessionId: "44e59c",
-            location: "useExperienceScroll.ts:raf",
-            message: "focus tick",
-            data: {
-              scrollTop: st,
-              focusArmed: focusArmedRef.current,
-              focusRaw,
-              focusEased: eased,
-              runId: "door-shop-v9",
-            },
-            timestamp: Date.now(),
-            hypothesisId: "H12-idle-gate",
-          }),
-        }).catch(() => {});
-      }
-      // #endregion
+
 
       raf = requestAnimationFrame(tick);
     };

@@ -229,7 +229,7 @@ function DoorPanel({
 }
 
 function PhysicalDoorFrame() {
-  const { scene } = useGLTF(DOOR_MODEL_URL, false, false, extendGltfLoader);
+  const { scene } = useGLTF(DOOR_MODEL_URL, true, false, extendGltfLoader);
   
   const cloned = useMemo(() => {
     const obj = scene.clone(true);

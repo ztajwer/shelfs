@@ -107,7 +107,6 @@ export default function RootLayout({
             crossOrigin="anonymous"
           />
         )}
-        <link rel="preload" href="/imagemob.png" as="image" />
         <link rel="preload" href="/image.png" as="image" />
         <link rel="preload" href="/logo_outline.png" as="image" />
         <link rel="preload" href="/wh_logo-removebg-preview.png" as="image" />

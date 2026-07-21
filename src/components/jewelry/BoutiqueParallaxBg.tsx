@@ -73,18 +73,30 @@ export default function BoutiqueParallaxBg({
       <div className="boutique-room__parallax-pan boutique-hero__bg-pan">
         <div ref={bgMediaRef} className="boutique-room__parallax-media boutique-hero__bg-media">
           {isMobile ? (
-            <video
-              ref={videoRef}
-              className="boutique-room__parallax-img boutique-room__parallax-video boutique-hero__bg-img"
-              src={mobileVideoSrc || undefined}
-              poster={mobilePosterSrc || undefined}
-              muted
-              playsInline
-              preload="metadata"
-              disablePictureInPicture
-              disableRemotePlayback
-              style={mediaStyle}
-            />
+            mobileVideoSrc ? (
+              <video
+                ref={videoRef}
+                className="boutique-room__parallax-img boutique-room__parallax-video boutique-hero__bg-img"
+                src={mobileVideoSrc}
+                poster={mobilePosterSrc || undefined}
+                muted
+                playsInline
+                preload="metadata"
+                disablePictureInPicture
+                disableRemotePlayback
+                style={mediaStyle}
+              />
+            ) : (
+              <img
+                src={mobilePosterSrc || desktopSrc}
+                alt=""
+                className="boutique-room__parallax-img boutique-hero__bg-img"
+                draggable={false}
+                decoding="async"
+                fetchPriority="high"
+                style={mediaStyle}
+              />
+            )
           ) : (
             <img
               src={desktopSrc || undefined}
